@@ -196,8 +196,9 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 const { useState, useEffect, useRef, useMemo } = React;
 const html = htm.bind(React.createElement);
 
-// Put the real download link here when the installer is hosted (e.g. a GitHub release).
-const DOWNLOAD_URL = '';
+// Always points at the installer of the newest GitHub release.
+const DOWNLOAD_URL = 'https://github.com/moshiach770chabad749-hue/quickdeck/releases/latest/download/QuickDeck-Setup-1.0.0.exe';
+const REPO_URL = 'https://github.com/moshiach770chabad749-hue/quickdeck';
 
 const TILES = {
   'ראשי': [
@@ -465,7 +466,7 @@ function App() {
       </div>
     </section>
 
-    <footer><div class="wrap"><span>QuickDeck © 2026</span><span>נבנה לווינדוס, בעברית.</span></div></footer>
+    <footer><div class="wrap"><span>QuickDeck © 2026</span><a href=${REPO_URL} target="_blank" rel="noopener">הקוד ב-GitHub</a></div></footer>
   `;
 }
 
