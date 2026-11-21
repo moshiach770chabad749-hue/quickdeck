@@ -1,0 +1,473 @@
+<title>QuickDeck</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;800&family=Heebo:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: a live, working replica of the app is the hero; everything else is quiet text around keycaps and colored tiles. */
+:root {
+  --bg: #f3f4f7;
+  --surface: #ffffff;
+  --ink: #15171f;
+  --muted: #5d6273;
+  --line: #dfe2ea;
+  --accent: #2f55ff;
+  --accent-ink: #ffffff;
+  --panel: #191a24;
+  --panel-text: #eef0f6;
+  --panel-muted: #8f93a8;
+  --key-top: #ffffff;
+  --key-side: #c9cdd8;
+  --font-display: "Rubik", "Segoe UI", Arial, sans-serif;
+  --font-body: "Heebo", "Segoe UI", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1016; --surface: #171923; --ink: #eceef5; --muted: #9a9fb3; --line: #272a38;
+    --accent: #7b93ff; --accent-ink: #0f1016; --panel: #1d1f2b; --panel-text: #eef0f6; --panel-muted: #8f93a8;
+    --key-top: #2a2d3c; --key-side: #11131b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1016; --surface: #171923; --ink: #eceef5; --muted: #9a9fb3; --line: #272a38;
+  --accent: #7b93ff; --accent-ink: #0f1016; --panel: #1d1f2b; --panel-text: #eef0f6; --panel-muted: #8f93a8;
+  --key-top: #2a2d3c; --key-side: #11131b; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; }
+a { color: inherit; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+.wrap { max-width: 1160px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+
+/* nav */
+.nav { display: flex; align-items: center; gap: 16px; padding-block: 22px; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 800; font-size: 21px; text-decoration: none; }
+.mark { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; width: 26px; height: 26px; }
+.mark i { border-radius: 4px; }
+.nav .spacer { flex: 1; }
+.nav a.link { text-decoration: none; color: var(--muted); font-size: 15px; }
+.nav a.link:hover { color: var(--ink); }
+.btn { display: inline-flex; align-items: center; gap: 8px; border: 0; cursor: pointer; text-decoration: none; font: 600 16px var(--font-body); border-radius: 12px; padding: 13px 22px; transition: transform .12s, box-shadow .12s; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 35%, transparent); }
+.btn-primary:hover { transform: translateY(-2px); }
+.btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+.btn-ghost:hover { border-color: var(--ink); }
+.btn-sm { padding: 9px 16px; font-size: 14.5px; border-radius: 10px; }
+@media (max-width: 640px) { .nav a.link { display: none; } }
+
+/* hero */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 56px; align-items: center; padding-block: 36px 80px; }
+@media (max-width: 960px) { .hero { grid-template-columns: minmax(0, 1fr); gap: 40px; padding-block: 16px 56px; } }
+.eyebrow { font-family: var(--font-mono); font-size: 13px; letter-spacing: .06em; color: var(--muted); display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
+.eyebrow b { color: var(--accent); font-weight: 700; }
+.hero h1 { font-size: clamp(38px, 5.4vw, 64px); font-weight: 800; letter-spacing: -.01em; }
+.hero h1 em { font-style: normal; color: var(--accent); }
+.lede { font-size: 19px; color: var(--muted); margin-top: 20px; max-width: 34em; }
+.combo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 30px; }
+.combo .plus { color: var(--muted); font-family: var(--font-mono); }
+.combo .say { color: var(--muted); font-size: 15px; margin-inline-start: 6px; }
+.key {
+  font-family: var(--font-mono); font-weight: 700; font-size: 15px; color: var(--ink); direction: ltr;
+  background: var(--key-top); border: 1px solid var(--line); border-radius: 9px; padding: 8px 14px 9px;
+  box-shadow: 0 4px 0 var(--key-side), 0 6px 12px rgba(0,0,0,.08); transition: transform .08s, box-shadow .08s;
+}
+.key.down { transform: translateY(3px); box-shadow: 0 1px 0 var(--key-side); color: var(--accent); }
+.ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 34px; align-items: center; }
+.fine { font-size: 13.5px; color: var(--muted); font-family: var(--font-mono); direction: rtl; }
+
+/* demo window: always dark, like the real app */
+.demo-shell { position: relative; }
+.demo-shell::before { content: ""; position: absolute; inset: 8% -4% -6% 6%; border-radius: 40px; background: conic-gradient(from 200deg, #f5a524, #ef4444, #ec4899, #3b82f6, #10b981, #f5a524); filter: blur(60px); opacity: .28; z-index: 0; }
+.demo {
+  position: relative; z-index: 1; background: var(--panel); color: var(--panel-text); border-radius: 22px; padding: 16px;
+  border: 1px solid rgba(255,255,255,.08); box-shadow: 0 30px 70px rgba(10,12,30,.35);
+  transition: transform .22s cubic-bezier(.2,.9,.3,1.2), opacity .18s;
+}
+.demo.closed { transform: scale(.94) translateY(10px); opacity: .25; }
+.d-top { display: flex; gap: 8px; }
+.d-search { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; border-radius: 13px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); }
+.d-search:focus-within { border-color: #7b93ff; box-shadow: 0 0 0 4px rgba(123,147,255,.18); }
+.d-search svg { width: 18px; height: 18px; flex: none; stroke: var(--panel-muted); fill: none; stroke-width: 2; }
+.d-search input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--panel-text); font: 500 16px var(--font-body); }
+.d-search input::placeholder { color: #6b6f85; }
+.d-search kbd { font: 11px var(--font-mono); color: var(--panel-muted); border: 1px solid rgba(255,255,255,.14); border-radius: 6px; padding: 2px 6px; direction: ltr; white-space: nowrap; }
+@media (max-width: 480px) { .d-search kbd { display: none; } }
+.d-icon { width: 48px; height: 48px; border-radius: 13px; display: grid; place-items: center; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); color: var(--panel-muted); }
+.d-tabs { display: flex; gap: 6px; margin: 12px 0; }
+.d-tab { background: none; border: 1px solid transparent; color: var(--panel-muted); font: 13px var(--font-body); padding: 5px 13px; border-radius: 99px; cursor: pointer; }
+.d-tab.on { background: rgba(255,255,255,.1); color: var(--panel-text); border-color: rgba(255,255,255,.1); }
+.d-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 520px) { .d-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } .d-grid .tile:nth-child(n+13) { display: none; } }
+.tile {
+  --c: #3b3b52; aspect-ratio: 1 / .92; border: 0; border-radius: 15px; cursor: pointer; color: #fff; padding: 6px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; position: relative; overflow: hidden;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 92%, white 12%), color-mix(in srgb, var(--c) 72%, black 40%));
+  box-shadow: 0 5px 12px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25), inset 0 -3px 0 rgba(0,0,0,.25);
+  transition: transform .12s, filter .12s; font-family: var(--font-body);
+}
+.tile::after { content: ""; position: absolute; inset: 0 0 55% 0; background: linear-gradient(rgba(255,255,255,.16), transparent); pointer-events: none; }
+.tile:hover { transform: translateY(-2px); filter: brightness(1.08); }
+.tile:active, .tile.hit { transform: scale(.93); filter: brightness(1.35); }
+.tile .g { font-size: clamp(20px, 2.6vw, 28px); line-height: 1; filter: drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
+.tile .l { font-size: 11.5px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+.tile.empty { background: transparent; border: 1.5px dashed rgba(255,255,255,.1); box-shadow: none; cursor: default; }
+.tile.empty::after { display: none; }
+.d-results { display: flex; flex-direction: column; gap: 2px; min-height: 0; }
+.d-res { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 11px; }
+.d-res.sel { background: rgba(123,147,255,.22); }
+.d-res .ri { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; font-size: 18px; flex: none; }
+.d-res .rt { flex: 1; min-width: 0; }
+.d-res .rn { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.d-res .rn mark { background: none; color: #9fb0ff; font-weight: 700; }
+.d-res .rs { font: 11px var(--font-mono); color: var(--panel-muted); direction: ltr; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.d-res .tag { font-size: 11px; color: var(--panel-muted); border: 1px solid rgba(255,255,255,.14); padding: 1px 8px; border-radius: 99px; flex: none; }
+.d-status { margin-top: 12px; font: 12px var(--font-mono); color: var(--panel-muted); text-align: center; min-height: 18px; }
+.d-status b { color: #9fb0ff; font-weight: 700; }
+.try { margin-top: 14px; font-size: 14px; color: var(--muted); text-align: center; }
+.try button { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+/* sections */
+section.block { padding-block: 72px; border-top: 1px solid var(--line); }
+.sec-head { display: flex; flex-direction: column; gap: 12px; max-width: 40em; margin-bottom: 40px; }
+.sec-head h2 { font-size: clamp(28px, 3.6vw, 40px); font-weight: 800; }
+.sec-head p { color: var(--muted); font-size: 18px; }
+
+.features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 36px 40px; }
+@media (max-width: 860px) { .features { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .features { grid-template-columns: minmax(0, 1fr); } }
+.feat { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.feat .sw { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.3), inset 0 -2px 0 rgba(0,0,0,.2); }
+.feat .sw svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.feat h3 { font-size: 20px; font-weight: 700; }
+.feat p { color: var(--muted); font-size: 16px; }
+
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; counter-reset: s; }
+@media (max-width: 860px) { .steps { grid-template-columns: minmax(0, 1fr); } }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 26px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.step .n { font: 700 14px var(--font-mono); color: var(--accent); }
+.step h3 { font-size: 21px; }
+.step p { color: var(--muted); font-size: 16px; }
+.step .keys { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.step .keys .key { font-size: 13px; padding: 5px 10px 6px; }
+
+.ideas-wrap { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 32px; align-items: start; }
+@media (max-width: 760px) { .ideas-wrap { grid-template-columns: minmax(0, 1fr); } }
+.cat-list { display: flex; flex-direction: column; gap: 6px; }
+@media (max-width: 760px) { .cat-list { flex-direction: row; flex-wrap: wrap; } }
+.cat { text-align: right; background: none; border: 1.5px solid transparent; border-radius: 12px; padding: 11px 16px; font: 600 16px var(--font-body); color: var(--muted); cursor: pointer; display: flex; justify-content: space-between; gap: 12px; }
+.cat span.c { font: 13px var(--font-mono); }
+.cat:hover { color: var(--ink); }
+.cat.on { background: var(--surface); border-color: var(--line); color: var(--ink); }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip { display: inline-flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 7px 14px 7px 8px; font-size: 15px; }
+.chip i { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; font-style: normal; font-size: 15px; }
+.chip small { color: var(--muted); font-size: 12.5px; }
+
+.faq { display: flex; flex-direction: column; max-width: 800px; }
+.faq details { border-bottom: 1px solid var(--line); padding-block: 18px; }
+.faq summary { cursor: pointer; font: 600 18px var(--font-display); list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font: 400 24px var(--font-mono); color: var(--muted); line-height: 1; transition: transform .2s; }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq details p { color: var(--muted); margin-top: 10px; max-width: 62ch; }
+
+.final { text-align: center; padding-block: 90px; border-top: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.final h2 { font-size: clamp(30px, 4.2vw, 48px); font-weight: 800; }
+.final p { color: var(--muted); font-size: 18px; }
+.specs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 22px; font: 13.5px var(--font-mono); color: var(--muted); margin-top: 6px; }
+footer { border-top: 1px solid var(--line); padding-block: 26px; color: var(--muted); font-size: 14px; }
+footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+</style>
+
+<div id="root" dir="rtl" lang="he"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<script>
+const { useState, useEffect, useRef, useMemo } = React;
+const html = htm.bind(React.createElement);
+
+// Put the real download link here when the installer is hosted (e.g. a GitHub release).
+const DOWNLOAD_URL = '';
+
+const TILES = {
+  'ראשי': [
+    ['סייר קבצים', '📁', '#f5a524'], ['שולחן עבודה', '🖥️', '#3b82f6'], ['הורדות', '⬇️', '#10b981'], ['מסמכים', '📄', '#6366f1'], ['מחשבון', '🧮', '#64748b'],
+    ['Google', '🔍', '#ea4335'], ['YouTube', '▶️', '#ff0033'], ['WhatsApp', '💬', '#25d366'], ['צילום מסך', '✂️', '#ec4899'], ['הגדרות', '⚙️', '#475569'],
+    ['נעילה', '🔒', '#ef4444'], ['מנהל משימות', '📊', '#0ea5e9'], ['פנקס', '📝', '#a855f7'], ['סל מחזור', '🗑️', '#78716c'], null
+  ],
+  'עבודה': [
+    ['Gmail', '📧', '#ea4335'], ['Drive', '☁️', '#f5a524'], ['Teams', '👥', '#6264a7'], ['Excel', '📊', '#107c41'], ['Word', '📘', '#185abd'],
+    ['Zoom', '🎥', '#2d8cff'], ['תרגום', '🌍', '#3b82f6'], ['Claude', '✳️', '#d97757'], ['VS Code', '💻', '#0e7acb'], null,
+    ['כיבוי בעוד שעה', '⏲️', '#a855f7'], ['Wi-Fi', '📶', '#0ea5e9'], null, null, null
+  ],
+  'בית': [
+    ['Netflix', '🎬', '#b20710'], ['Spotify', '🎧', '#1db954'], ['KSP', '🖥️', '#ef4444'], ['Wolt', '🍔', '#00c2e8'], ['ynet', '📰', '#ef4444'],
+    ['Waze', '🚗', '#0ea5e9'], ['Steam', '🎮', '#1b2838'], ['מזג אוויר', '⛅', '#0ea5e9'], ['שינה', '🌙', '#6366f1'], ['כיבוי', '⏻', '#ef4444'],
+    null, null, null, null, null
+  ]
+};
+
+const APPS = [
+  ['Visual Studio Code', '💻', '#0e7acb', 'C:\\Users\\...\\Code.exe'], ['Google Chrome', '🌐', '#4285f4', 'C:\\Program Files\\Google\\Chrome'],
+  ['Spotify', '🎧', '#1db954', 'C:\\Users\\...\\Spotify.exe'], ['Word', '📘', '#185abd', 'C:\\Program Files\\Microsoft Office'],
+  ['Excel', '📊', '#107c41', 'C:\\Program Files\\Microsoft Office'], ['PowerPoint', '📙', '#c43e1c', 'C:\\Program Files\\Microsoft Office'],
+  ['Steam', '🎮', '#1b2838', 'C:\\Program Files (x86)\\Steam'], ['Discord', '🎙️', '#5865f2', 'C:\\Users\\...\\Discord.exe'],
+  ['Blender', '🧊', '#ea7600', 'C:\\Program Files\\Blender'], ['Paint', '🎨', '#ec4899', 'mspaint.exe'],
+  ['פנקס רשימות', '📝', '#a855f7', 'notepad.exe'], ['מחשבון', '🧮', '#64748b', 'calc.exe'],
+  ['Microsoft Edge', '🌊', '#0c8fd6', 'C:\\Program Files (x86)\\Microsoft\\Edge'], ['WhatsApp', '💬', '#25d366', 'web.whatsapp.com'],
+  ['Epic Games Launcher', '🕹️', '#2a2a2a', 'C:\\Program Files\\Epic Games'], ['Zoom', '🎥', '#2d8cff', 'C:\\Users\\...\\Zoom.exe']
+];
+
+const IDEAS = [
+  { cat: 'אתרים', items: [['KSP', '🖥️', '#ef4444'], ['זאפ', '🛒', '#3b82f6'], ['Ivory', '💻', '#6366f1'], ['ynet', '📰', '#ef4444'], ['כאן 11', '📺', '#0ea5e9'], ['Waze', '🚗', '#0ea5e9'], ['מפות', '🗺️', '#22c55e'], ['Gmail', '📧', '#ea4335'], ['Drive', '☁️', '#f5a524'], ['תרגום', '🌍', '#3b82f6'], ['Claude', '✳️', '#d97757'], ['WhatsApp', '💬', '#25d366'], ['YouTube', '▶️', '#ff0033'], ['Spotify', '🎧', '#1db954'], ['Netflix', '🎬', '#b20710'], ['Wolt', '🍔', '#00c2e8'], ['AliExpress', '📦', '#f97316'], ['מזג אוויר', '⛅', '#0ea5e9'], ['gov.il', '🏛️', '#1e40af']] },
+  { cat: 'פקודות מחשב', items: [['כיבוי', '⏻', '#ef4444'], ['הפעלה מחדש', '🔄', '#f97316'], ['כיבוי בעוד שעה', '⏲️', '#a855f7'], ['ביטול כיבוי', '✋', '#64748b'], ['שינה', '🌙', '#6366f1'], ['נעילה', '🔒', '#ef4444'], ['כיבוי מסך', '🖥️', '#1f2937'], ['ריקון סל מחזור', '🗑️', '#78716c'], ['ניקוי דיסק', '🧹', '#10b981'], ['מנהל התקנים', '🔌', '#475569'], ['ניהול דיסקים', '💽', '#475569'], ['לוח הבקרה', '🎛️', '#3b82f6'], ['שורת פקודה', '⌨️', '#1f2937'], ['PowerShell', '🟦', '#1e40af'], ['תיקיית הפעלה', '🚀', '#f5a524'], ['תיקיית Temp', '🧺', '#78716c']] },
+  { cat: 'הגדרות ווינדוס', items: [['Wi-Fi', '📶', '#0ea5e9'], ['Bluetooth', '🔵', '#3b82f6'], ['צג', '🖥️', '#6366f1'], ['שמע', '🔊', '#a855f7'], ['עדכונים', '⬆️', '#10b981'], ['אפליקציות', '🧩', '#64748b'], ['אחסון', '💾', '#f5a524'], ['מדפסות', '🖨️', '#475569'], ['רקע', '🖼️', '#ec4899'], ['סוללה', '🔋', '#22c55e'], ['מצלמה', '📷', '#1f2937'], ['צילום מסך', '✂️', '#ec4899']] },
+  { cat: 'אנשים', items: [['וואטסאפ לאיש קשר', '💬', '#25d366'], ['מייל לאיש קשר', '📧', '#ea4335'], ['מייל עם נושא מוכן', '✉️', '#f97316'], ['שיחה', '📞', '#10b981'], ['Teams', '👥', '#6264a7'], ['פגישת זום קבועה', '🎥', '#2d8cff'], ['Google Meet', '📹', '#00897b'], ['פרופיל פייסבוק', '👤', '#1877f2'], ['פרופיל אינסטגרם', '📸', '#e1306c']] }
+];
+
+function score(name, q) {
+  const n = name.toLowerCase(); q = q.toLowerCase();
+  if (n.startsWith(q)) return 80;
+  if (n.split(/\s+/).some(w => w.startsWith(q))) return 60;
+  if (n.includes(q)) return 40;
+  let j = 0; for (const c of n) if (c === q[j]) j++;
+  return j === q.length ? 10 : 0;
+}
+const isDomain = (q) => /^(www\.)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(q);
+
+function Hl({ text, q }) {
+  const i = text.toLowerCase().indexOf(q.toLowerCase());
+  if (!q || i < 0) return text;
+  return html`${text.slice(0, i)}<mark>${text.slice(i, i + q.length)}</mark>${text.slice(i + q.length)}`;
+}
+
+function Demo({ open, inputRef }) {
+  const [page, setPage] = useState('ראשי');
+  const [q, setQ] = useState('');
+  const [sel, setSel] = useState(0);
+  const [hit, setHit] = useState(-1);
+  const [status, setStatus] = useState(null);
+
+  const results = useMemo(() => {
+    const t = q.trim(); if (!t) return [];
+    const out = [];
+    if (isDomain(t)) out.push({ name: t, sub: 'https://' + t.replace(/^https?:\/\//, ''), g: '🌐', c: '#3b82f6', tag: 'אתר' });
+    const tiles = Object.values(TILES).flat().filter(Boolean).map(x => ({ name: x[0], g: x[1], c: x[2], sub: 'כפתור בלוח', tag: 'כפתור', s: score(x[0], t) })).filter(x => x.s);
+    const apps = APPS.map(a => ({ name: a[0], g: a[1], c: a[2], sub: a[3], tag: 'תוכנה', s: score(a[0], t) })).filter(x => x.s);
+    const seen = new Set();
+    [...tiles, ...apps].sort((a, b) => b.s - a.s).forEach(r => { if (!seen.has(r.name)) { seen.add(r.name); out.push(r); } });
+    out.splice(6);
+    out.push({ name: `חפש "${t}" בגוגל`, sub: 'google.com', g: '🔍', c: '#475569', tag: 'חיפוש' });
+    return out;
+  }, [q]);
+
+  useEffect(() => setSel(0), [q]);
+
+  const launch = (name) => {
+    setStatus(name);
+    clearTimeout(launch.t); launch.t = setTimeout(() => setStatus(null), 1800);
+  };
+  const press = (i, t) => { if (!t) return; setHit(i); setTimeout(() => setHit(-1), 180); launch(t[0]); };
+
+  const onKey = (e) => {
+    if (!q) return;
+    if (e.key === 'ArrowDown') { setSel(s => Math.min(results.length - 1, s + 1)); e.preventDefault(); }
+    if (e.key === 'ArrowUp') { setSel(s => Math.max(0, s - 1)); e.preventDefault(); }
+    if (e.key === 'Enter' && results[sel]) { launch(results[sel].name); setQ(''); }
+    if (e.key === 'Escape') setQ('');
+  };
+
+  return html`
+    <div class=${'demo' + (open ? '' : ' closed')} role="region" aria-label="הדגמה חיה של QuickDeck">
+      <div class="d-top">
+        <label class="d-search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <input id="demo-q" ref=${inputRef} value=${q} onInput=${e => setQ(e.target.value)} onKeyDown=${onKey}
+            placeholder="נסו להקליד: spo, ex או ksp.co.il" autocomplete="off" spellcheck="false" aria-label="חיפוש בהדגמה" />
+          <kbd>Ctrl+Shift+Space</kbd>
+        </label>
+        <div class="d-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></div>
+      </div>
+      ${q.trim() ? html`
+        <div class="d-results" style=${{ marginTop: '12px' }}>
+          ${results.map((r, i) => html`
+            <div key=${r.name + i} class=${'d-res' + (i === sel ? ' sel' : '')} onMouseEnter=${() => setSel(i)} onClick=${() => { launch(r.name); setQ(''); }} style=${{ cursor: 'pointer' }}>
+              <span class="ri" style=${{ background: r.c }}>${r.g}</span>
+              <span class="rt"><div class="rn"><${Hl} text=${r.name} q=${q.trim()} /></div><div class="rs">${r.sub}</div></span>
+              <span class="tag">${r.tag}</span>
+            </div>`)}
+        </div>` : html`
+        <div>
+          <div class="d-tabs" role="tablist">
+            ${Object.keys(TILES).map(p => html`<button key=${p} role="tab" aria-selected=${p === page} class=${'d-tab' + (p === page ? ' on' : '')} onClick=${() => setPage(p)}>${p}</button>`)}
+          </div>
+          <div class="d-grid">
+            ${TILES[page].map((t, i) => t
+              ? html`<button key=${page + i} class=${'tile' + (hit === i ? ' hit' : '')} style=${{ '--c': t[2] }} onClick=${() => press(i, t)}><span class="g">${t[1]}</span><span class="l">${t[0]}</span></button>`
+              : html`<div key=${page + i} class="tile empty" aria-hidden="true"></div>`)}
+          </div>
+        </div>`}
+      <div class="d-status" aria-live="polite">${status ? html`נפתח: <b>${status}</b>` : 'לחצו על כפתור או הקלידו לחיפוש'}</div>
+    </div>`;
+}
+
+const FEATURES = [
+  ['#3b82f6', 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4', 'חיפוש מיידי', 'מקלידים שתיים־שלוש אותיות ומקבלים כל תוכנה שמותקנת במחשב, כל כפתור שיצרתם וכל אתר. Enter ופתוח.'],
+  ['#f5a524', 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z', 'לוח כפתורים משלכם', 'עד 8 על 6 כפתורים בכל דף. בוחרים שם, צבע, אימוג\'י או את האייקון המקורי של התוכנה.'],
+  ['#10b981', 'M4 6h16M4 12h10M4 18h7', 'דפים לפי נושא', 'דף לעבודה, דף לבית, דף למשחקים. מעבר עם Ctrl ומספר, והעברת כפתורים בין דפים בגרירה.'],
+  ['#ec4899', 'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6', '56 רעיונות מוכנים', 'אתרים ישראליים, פקודות כיבוי ושינה, הגדרות Wi-Fi ו-Bluetooth, וקיצורים לאנשים: וואטסאפ, מייל וזום.'],
+  ['#a855f7', 'M12 3v12M7 10l5 5 5-5M5 21h14', 'גוררים ומשחררים', 'גוררים קובץ, תיקייה או תוכנה מהסייר לריבוע ריק, והכפתור מוכן. בלי להעתיק נתיבים.'],
+  ['#ef4444', 'M3 12h4l3-8 4 16 3-8h4', 'כתובת בלי https', 'כותבים ksp.co.il וזה נפתח. QuickDeck מזהה כתובת אתר לבד, גם בחיפוש וגם בכפתורים.']
+];
+
+function App() {
+  const [open, setOpen] = useState(true);
+  const [down, setDown] = useState(false);
+  const [cat, setCat] = useState(0);
+  const inputRef = useRef(null);
+
+  const toggle = () => {
+    setDown(true); setTimeout(() => setDown(false), 160);
+    setOpen(o => { const n = !o; if (n) setTimeout(() => inputRef.current && inputRef.current.focus(), 60); return n; });
+  };
+
+  useEffect(() => {
+    const h = (e) => { if (e.ctrlKey && e.shiftKey && (e.code === 'Space')) { e.preventDefault(); toggle(); } };
+    window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h);
+  }, []);
+
+  const dl = DOWNLOAD_URL
+    ? html`<a class="btn btn-primary" href=${DOWNLOAD_URL} target="_blank" rel="noopener">הורדה לווינדוס</a>`
+    : html`<a class="btn btn-primary" href="#download">הורדה לווינדוס</a>`;
+
+  return html`
+    <div class="wrap">
+      <nav class="nav">
+        <a class="brand" href="#top" aria-label="QuickDeck">
+          <span class="mark" aria-hidden="true"><i style=${{ background: '#7c5cff' }}></i><i style=${{ background: '#3b82f6' }}></i><i style=${{ background: '#10b981' }}></i><i style=${{ background: '#f5a524' }}></i></span>
+          QuickDeck
+        </a>
+        <span class="spacer"></span>
+        <a class="link" href="#features">מה יש בו</a>
+        <a class="link" href="#ideas">רעיונות</a>
+        <a class="link" href="#faq">שאלות</a>
+        <a class="btn btn-primary btn-sm" href="#download">הורדה</a>
+      </nav>
+
+      <header class="hero" id="top">
+        <div>
+          <div class="eyebrow"><b>●</b> לווינדוס 10 ו-11 · בעברית מלאה</div>
+          <h1>כל המחשב שלך, <em>במרחק לחיצה אחת.</em></h1>
+          <p class="lede">QuickDeck הוא חלון קטן שקופץ בצירוף מקשים אחד. מחפשים בו כל תוכנה, או לוחצים על לוח כפתורים צבעוני שבניתם בעצמכם, כמו לוח של סטרימרים.</p>
+          <div class="combo" aria-label="צירוף המקשים לפתיחה">
+            <span class=${'key' + (down ? ' down' : '')}>Ctrl</span><span class="plus">+</span>
+            <span class=${'key' + (down ? ' down' : '')}>Shift</span><span class="plus">+</span>
+            <span class=${'key' + (down ? ' down' : '')}>Space</span>
+            <span class="say">וזה פתוח</span>
+          </div>
+          <div class="ctas">
+            ${dl}
+            <a class="btn btn-ghost" href="#features">מה הוא יודע</a>
+          </div>
+        </div>
+        <div class="demo-shell">
+          <${Demo} open=${open} inputRef=${inputRef} />
+          <p class="try">זו הדגמה חיה. נסו ללחוץ <button onClick=${toggle}>Ctrl+Shift+Space</button> על המקלדת.</p>
+        </div>
+      </header>
+    </div>
+
+    <section class="block" id="features">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2>פחות חיפוש בתפריט התחל. יותר עבודה.</h2>
+          <p>כל מה שאתם פותחים כל יום, במקום אחד, מסודר כמו שאתם רוצים.</p>
+        </div>
+        <div class="features">
+          ${FEATURES.map(([c, d, t, p]) => html`
+            <div class="feat" key=${t}>
+              <span class="sw" style=${{ background: c }}><svg viewBox="0 0 24 24"><path d=${d} /></svg></span>
+              <h3>${t}</h3>
+              <p>${p}</p>
+            </div>`)}
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2>מוכן תוך דקה</h2>
+          <p>שלושה צעדים, ואין צורך בהגדרות מסובכות.</p>
+        </div>
+        <div class="steps">
+          <div class="step"><span class="n">01</span><h3>מתקינים</h3><p>מורידים את המתקין ומריצים. ההתקנה למשתמש שלכם בלבד ולא דורשת הרשאות מנהל.</p></div>
+          <div class="step"><span class="n">02</span><h3>פותחים בצירוף מקשים</h3><p>מכל מקום, מכל תוכנה. QuickDeck רץ ברקע ליד השעון ותופס כמעט אפס משאבים.</p>
+            <div class="keys"><span class="key">Ctrl</span><span class="key">Shift</span><span class="key">Space</span></div></div>
+          <div class="step"><span class="n">03</span><h3>בונים את הלוח</h3><p>מצב עריכה, לחיצה על ריבוע ריק, ובוחרים מהרעיונות המוכנים או גוררים קובץ מהסייר.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="ideas">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2>56 כפתורים מוכנים, בלחיצה</h2>
+          <p>לא צריך לדעת פקודות של ווינדוס. בוחרים רעיון, והכפתור ממלא את עצמו.</p>
+        </div>
+        <div class="ideas-wrap">
+          <div class="cat-list" role="tablist">
+            ${IDEAS.map((c, i) => html`<button key=${c.cat} role="tab" aria-selected=${i === cat} class=${'cat' + (i === cat ? ' on' : '')} onClick=${() => setCat(i)}>${c.cat}<span class="c">${c.items.length}</span></button>`)}
+          </div>
+          <div class="chips">
+            ${IDEAS[cat].items.map(([n, g, c]) => html`<span class="chip" key=${n}><i style=${{ background: c }}>${g}</i>${n}</span>`)}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="faq">
+      <div class="wrap">
+        <div class="sec-head"><h2>שאלות נפוצות</h2></div>
+        <div class="faq">
+          <details><summary>ווינדוס מציג אזהרה כחולה בהתקנה. זה בטוח?</summary>
+            <p>האזהרה (SmartScreen) מופיעה לכל תוכנה חדשה שעוד אין לה חתימה דיגיטלית. לוחצים "מידע נוסף" ואז "הפעל בכל זאת". QuickDeck לא אוסף מידע ולא שולח שום דבר לאינטרנט.</p></details>
+          <details><summary>הצירוף Ctrl+Shift+Space תפוס אצלי. אפשר לשנות?</summary>
+            <p>כן. בהגדרות לוחצים על שדה הקיצור ומקישים כל צירוף שתרצו. אם הצירוף תפוס על ידי תוכנה אחרת, QuickDeck מודיע על זה ועובר לחלופה.</p></details>
+          <details><summary>הכפתורים שלי נשמרים אם אעדכן גרסה?</summary>
+            <p>כן. הכפתורים, הדפים וההגדרות נשמרים בפרופיל המשתמש שלכם ונשארים גם אחרי עדכון או התקנה מחדש.</p></details>
+          <details><summary>אפשר להריץ פקודות כמו כיבוי או שינה?</summary>
+            <p>כן. יש כפתורים מוכנים לכיבוי, הפעלה מחדש, שינה, נעילה, כיבוי מסך וטיימר כיבוי. שימו לב שכפתורי כיבוי פועלים מיד, בלי לשאול.</p></details>
+          <details><summary>איך מסירים את התוכנה?</summary>
+            <p>הגדרות ← אפליקציות ← QuickDeck ← הסרה, כמו כל תוכנה אחרת.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="final" id="download">
+      <div class="wrap" style=${{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '18px' }}>
+        <h2>הלחיצה הבאה שלכם תהיה מהירה יותר.</h2>
+        <p>מורידים, מתקינים, ולוחצים Ctrl+Shift+Space.</p>
+        ${DOWNLOAD_URL
+          ? html`<a class="btn btn-primary" href=${DOWNLOAD_URL} target="_blank" rel="noopener">הורדת QuickDeck</a>`
+          : html`<span class="btn btn-primary" aria-disabled="true" style=${{ opacity: .6, cursor: 'default' }}>ההורדה תיפתח בקרוב</span>`}
+        <div class="specs"><span>גרסה 1.0.0</span><span>Windows 10 / 11 · 64 ביט</span><span>116MB</span><span>עברית מלאה</span></div>
+      </div>
+    </section>
+
+    <footer><div class="wrap"><span>QuickDeck © 2026</span><span>נבנה לווינדוס, בעברית.</span></div></footer>
+  `;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(html`<${App} />`);
+</script>

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'">
+  <title>QuickDeck</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="panel" id="panel">
+    <header class="top">
+      <div class="search">
+        <svg viewBox="0 0 24 24" class="search-ico"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input id="q" type="text" placeholder="הקלד שם תוכנה, תיקייה או אתר…" autocomplete="off" spellcheck="false">
+        <kbd id="hotkeyHint">Ctrl+Shift+Space</kbd>
+      </div>
+      <button class="icon-btn" id="editBtn" title="מצב עריכה (Ctrl+E)">
+        <svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/></svg>
+      </button>
+      <button class="icon-btn" id="settingsBtn" title="הגדרות">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button>
+    </header>
+
+    <nav class="tabs" id="tabs"></nav>
+
+    <main class="body">
+      <section class="deck" id="deck"></section>
+      <section class="results hidden" id="results"></section>
+    </main>
+
+    <footer class="foot" id="foot">
+      <span><kbd>↵</kbd> הפעלה</span>
+      <span><kbd>↑↓←→</kbd> ניווט</span>
+      <span><kbd>Ctrl</kbd>+<kbd>1-9</kbd> מעבר דף</span>
+      <span><kbd>קליק ימני</kbd> עריכת כפתור</span>
+      <span><kbd>Esc</kbd> סגירה</span>
+    </footer>
+    <div class="edit-banner hidden" id="editBanner">מצב עריכה · לחץ על כפתור לעריכה · גרור להזזה · גרור קובץ מהסייר לריבוע ריק</div>
+  </div>
+
+  <!-- Tile editor -->
+  <div class="modal hidden" id="tileModal">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h2 id="tileModalTitle">עריכת כפתור</h2>
+        <button class="btn ideas-btn" id="ideasBtn">💡 רעיונות מוכנים</button>
+      </div>
+      <div class="editor">
+        <div class="preview-wrap"><div class="tile preview" id="tilePreview"></div></div>
+        <div class="fields">
+          <label>שם<input id="fLabel" maxlength="24"></label>
+          <div class="field">סוג פעולה
+            <div class="seg" id="fType">
+              <button data-v="app">תוכנה / קובץ</button>
+              <button data-v="folder">תיקייה</button>
+              <button data-v="url">אתר</button>
+              <button data-v="command">פקודה</button>
+            </div>
+          </div>
+          <div class="field"><span id="fTargetLabel">נתיב</span>
+            <div class="row"><input id="fTarget" dir="ltr"><button class="btn ghost" id="fBrowse">עיון…</button></div>
+          </div>
+          <div class="field">דף
+            <div class="seg pages-seg" id="fPage"></div>
+          </div>
+          <div class="field">אייקון (בחר מהרשימה או הקלד אימוג'י)
+            <div class="row">
+              <input id="fIcon" class="emoji-in" placeholder="😀" title="הקלד או הדבק אימוג'י">
+              <button class="btn ghost" id="fUseFileIcon">אייקון של הקובץ</button>
+              <button class="btn ghost" id="fNoIcon">ללא אייקון</button>
+            </div>
+            <div class="emojis" id="emojiPick"></div>
+          </div>
+          <div class="field">צבע<div class="swatches" id="swatches"></div></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn danger" id="tileDelete">מחק</button>
+        <span class="spacer"></span>
+        <button class="btn ghost" id="tileCancel">ביטול</button>
+        <button class="btn primary" id="tileSave">שמור</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="modal hidden" id="setModal">
+    <div class="sheet small">
+      <h2>הגדרות</h2>
+      <label>קיצור מקשים לפתיחה
+        <input id="sHotkey" readonly dir="ltr" placeholder="לחץ כאן ואז על צירוף המקשים">
+      </label>
+      <div class="row2">
+        <label>עמודות<input id="sCols" type="number" min="3" max="8"></label>
+        <label>שורות<input id="sRows" type="number" min="2" max="6"></label>
+      </div>
+      <div class="field">צבע ראשי<div class="swatches" id="sAccent"></div></div>
+      <label class="check"><input type="checkbox" id="sLogin"> הפעל אוטומטית עם עליית ווינדוס</label>
+      <div class="row">
+        <button class="btn ghost" id="sRefresh">רענן רשימת תוכנות</button>
+        <button class="btn ghost danger-text" id="sReset">איפוס לברירת מחדל</button>
+      </div>
+      <p class="msg" id="sMsg"></p>
+      <div class="actions">
+        <span class="spacer"></span>
+        <button class="btn ghost" id="setCancel">ביטול</button>
+        <button class="btn primary" id="setSave">שמור</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ready-made ideas -->
+  <div class="modal hidden" id="ideasModal">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h2>💡 רעיונות מוכנים</h2>
+        <span class="hint">לחץ על רעיון כדי למלא את הכפתור</span>
+      </div>
+      <div class="seg" id="ideaCats"></div>
+      <div class="ideas" id="ideaList"></div>
+      <div class="actions">
+        <span class="spacer"></span>
+        <button class="btn ghost" id="ideasClose">חזרה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- In-app confirm (native confirm() steals focus and hides the window) -->
+  <div class="modal hidden" id="askModal">
+    <div class="sheet small">
+      <h2 id="askTitle">אישור</h2>
+      <p id="askText" class="ask-text"></p>
+      <div class="actions">
+        <span class="spacer"></span>
+        <button class="btn ghost" id="askNo">ביטול</button>
+        <button class="btn danger" id="askYes">מחק</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+  <script src="ideas.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

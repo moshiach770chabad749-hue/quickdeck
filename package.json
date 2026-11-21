@@ -1,0 +1,39 @@
+{
+  "name": "quickdeck",
+  "productName": "QuickDeck",
+  "version": "1.0.0",
+  "description": "מרכז קיצורי דרך מהיר ולוח כפתורים בסגנון לוח סטרימינג לווינדוס",
+  "author": "QuickDeck",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis --x64"
+  },
+  "build": {
+    "appId": "com.quickdeck.app",
+    "productName": "QuickDeck",
+    "directories": { "output": "dist" },
+    "files": ["src/**/*", "package.json"],
+    "win": {
+      "icon": "src/icon.png",
+      "target": "nsis",
+      "signExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "QuickDeck",
+      "runAfterFinish": true,
+      "installerLanguages": ["he_IL", "en_US"],
+      "language": "1037",
+      "artifactName": "QuickDeck-Setup-${version}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "45.4.1",
+    "electron-builder": "^26.18.0"
+  }
+}
