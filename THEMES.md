@@ -22,12 +22,13 @@ If the theme uses its own GIF, image or video (for example `"value": "bg.gif"`),
 | Key look | `keys.style` | `lcd` (black cap with a screen, like real hardware), `glass`, `neon`, `metal`, `flat` |
 | Key colors | `keys.colorMode` | `tile` (each key's own color), `theme` (same for all keys, from `keys.background`), `wallpaper` (one picture spread across all keys) |
 | Live key effect | `keys.effect` | `none`, `shine`, `pulse`, `rainbow`, `breathe`, `float`, `flow`, `glitch` |
+| Key frame | `keys.ring`, `keys.ringGlow` | `none`, `rainbow` (moving RGB) or any color like `"#00e5ff"`; `true` adds a glow |
 | Press / hover | `keys.press`, `keys.hover` | `sink`, `glow`, `ripple` / `lift`, `glow`, `none` |
 | Empty keys | `keys.empty` | `key`, `dashed`, `hidden` |
 | Text | `keys.labelColor`, `keys.labelFont` | CSS color / font-family |
 | Anything else | `css` | extra CSS. Selectors: `.panel`, `.deck`, `.tile`, `.tile .screen`, `.tile .ico`, `.tile .lbl`, `#bg`, `#bgFx` |
 
-Every key can also have its own **GIF, image or video**, its own effect, and a hidden name. Right-click a key, or drop a GIF straight onto it in edit mode.
+Every key can also have its own **GIF, image or video**, its own effect, its own **frame** (any color, or moving RGB, with or without glow), and a hidden name. Right-click a key, or drop a GIF straight onto it in edit mode.
 
 ## Example
 

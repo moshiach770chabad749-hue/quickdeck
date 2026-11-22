@@ -93,9 +93,25 @@ function keyInner(item) {
   const cover = item.media && item.media.mode !== 'icon' ? mediaTag(item.media, 'media') : '';
   return `<div class="screen">${cover}<div class="ico${item.media && item.media.mode === 'icon' ? ' big' : ''}"></div><div class="lbl">${esc(item.label || t('untitled'))}</div></div>`;
 }
+// key frame: per key (item.ring) or theme default (keys.ring: "none" | "rainbow" | "#hex")
+function ringOf(item) {
+  if (item.ring && item.ring.mode) return item.ring;
+  const k = (theme && theme.keys) || {};
+  // the old "rainbow" effect (key or theme) is shown as the RGB frame
+  if (item.fx === 'rainbow' || (!item.fx && k.effect === 'rainbow')) return { mode: 'rainbow', glow: false };
+  if (!k.ring || k.ring === 'none') return { mode: 'none' };
+  return k.ring === 'rainbow' ? { mode: 'rainbow', glow: !!k.ringGlow } : { mode: 'color', color: k.ring, glow: !!k.ringGlow };
+}
+function applyRing(el, item) {
+  const r = ringOf(item);
+  if (r.mode === 'color') el.style.setProperty('--ring', r.color || '#ffffff'); else el.style.removeProperty('--ring');
+}
 function keyClasses(item) {
-  const fx = item.fx || (theme && theme.keys && theme.keys.effect) || 'none';
+  let fx = item.fx || (theme && theme.keys && theme.keys.effect) || 'none';
+  if (fx === 'rainbow') fx = 'none';
+  const r = ringOf(item);
   return ['fx-' + (FX.includes(fx) ? fx : 'none'),
+    r.mode === 'color' || r.mode === 'rainbow' ? 'ring-on ring-' + r.mode + (r.glow ? ' ring-glow' : '') : '',
     item.media && item.media.mode !== 'icon' && safeUrl(item.media.src) ? 'has-media' : '',
     item.hideLabel ? 'no-label' : ''].filter(Boolean).join(' ');
 }
@@ -227,6 +243,7 @@ async function renderDeck() {
     el.style.setProperty('--d', (-(i * 0.37) % 4).toFixed(2) + 's');
     if (tile) {
       el.style.setProperty('--c', tile.color || '#3b3b52');
+      applyRing(el, tile);
       el.innerHTML = keyInner(tile);
       el.title = tile.target;
       iconHtml(tile).then(h => { const ico = el.querySelector('.ico'); if (ico) ico.innerHTML = h; });
@@ -454,11 +471,13 @@ function openEditor(i) {
   edIndex = i; edPage = page;
   const x = curTiles()[i];
   ed = x ? JSON.parse(JSON.stringify(x)) : { id: uid(), label: '', icon: '', color: COLORS[i % COLORS.length], type: 'app', target: '' };
+  // the old "rainbow" effect is now the RGB frame
+  if (ed.fx === 'rainbow') { delete ed.fx; ed.ring = ed.ring || { mode: 'rainbow', glow: false }; }
   $('#tileModalTitle').textContent = x ? t('editKey') : t('newKey');
   $('#tileDelete').style.visibility = x ? 'visible' : 'hidden';
   $('#fLabel').value = ed.label; $('#fTarget').value = ed.target; $('#fIcon').value = ed.icon || '';
   $('#fHideLabel').checked = !!ed.hideLabel;
-  renderSeg(); renderPageSeg(); renderMediaSeg(); renderFxSeg();
+  renderSeg(); renderPageSeg(); renderMediaSeg(); renderFxSeg(); renderRing();
   renderSwatches($('#swatches'), ed.color, (c) => { ed.color = c; updatePreview(); });
   updatePreview();
   window.qd.pin(true);
@@ -479,6 +498,29 @@ function renderMediaSeg() {
   $('#fMediaName').textContent = has ? (ed.media.name || (ed.media.kind === 'video' ? 'video' : 'image')) : t('mediaNone');
 }
 function renderFxSeg() { [...$('#fFx').children].forEach(b => b.classList.toggle('on', b.dataset.v === (ed.fx || ''))); }
+
+// ---- key frame (border): theme default, none, any color, or moving RGB ----
+const RING_COLORS = ['#ffffff', '#ff004c', '#ff7a00', '#ffd400', '#3dff6e', '#00e5ff', '#2f6bff', '#a64bff', '#ff2bd6', '#e8c372', '#c0c0c0', '#111111'];
+function renderRing() {
+  const mode = (ed.ring && ed.ring.mode) || '';
+  [...$('#fRing').children].forEach(b => b.classList.toggle('on', b.dataset.v === mode));
+  $('#fRingColors').style.display = mode === 'color' ? '' : 'none';
+  $('#fRingGlowRow').style.display = (mode === 'color' || mode === 'rainbow') ? '' : 'none';
+  $('#fRingGlow').checked = !!(ed.ring && ed.ring.glow);
+  if (mode === 'color') renderSwatchList($('#fRingColors'), RING_COLORS, ed.ring.color, (c) => { ed.ring.color = c; updatePreview(); });
+}
+$('#fRing').onclick = (e) => {
+  const v = e.target.dataset.v; if (v === undefined) return;
+  if (!v) delete ed.ring;
+  else ed.ring = { mode: v, color: (ed.ring && ed.ring.color) || (v === 'color' ? '#00e5ff' : undefined), glow: ed.ring ? !!ed.ring.glow : true };
+  renderRing(); updatePreview();
+};
+$('#fRingGlow').onchange = () => { if (ed.ring) { ed.ring.glow = $('#fRingGlow').checked; updatePreview(); } };
+$('#fRingAll').onclick = () => {
+  let n = 0;
+  curTiles().forEach(x => { if (x) { if (ed.ring) x.ring = { ...ed.ring }; else delete x.ring; n++; } });
+  persist(); renderDeck(); toast(t('ringAllDone', { n }));
+};
 $('#fType').onclick = (e) => { const v = e.target.dataset.v; if (v) { ed.type = v; renderSeg(); updatePreview(); } };
 $('#fMediaMode').onclick = (e) => { const v = e.target.dataset.v; if (v && ed.media) { ed.media.mode = v; renderMediaSeg(); updatePreview(); } };
 $('#fFx').onclick = (e) => { const v = e.target.dataset.v; if (v !== undefined) { ed.fx = v; renderFxSeg(); updatePreview(); } };
@@ -490,9 +532,10 @@ $('#fMediaPick').onclick = async () => {
 };
 $('#fMediaClear').onclick = () => { delete ed.media; renderMediaSeg(); updatePreview(); };
 $('#fHideLabel').onchange = () => { ed.hideLabel = $('#fHideLabel').checked; updatePreview(); };
-function renderSwatches(box, current, onPick) {
+function renderSwatches(box, current, onPick) { renderSwatchList(box, COLORS, current, onPick); }
+function renderSwatchList(box, list, current, onPick) {
   box.innerHTML = '';
-  COLORS.forEach(c => {
+  list.forEach(c => {
     const s = document.createElement('div'); s.className = 'sw' + (c === current ? ' on' : ''); s.style.background = c;
     s.onclick = () => { onPick(c); [...box.querySelectorAll('.sw')].forEach(x => x.classList.toggle('on', x === s)); };
     box.appendChild(s);
@@ -526,6 +569,7 @@ async function updatePreview() {
   const pv = $('#tilePreview');
   pv.className = 'tile preview ' + keyClasses(ed);
   pv.style.setProperty('--c', ed.color);
+  applyRing(pv, ed);
   pv.innerHTML = keyInner(ed);
   pv.querySelector('.ico').innerHTML = await iconHtml(ed);
 }
