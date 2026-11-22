@@ -406,8 +406,8 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') askConfirm.pending(false);
     return;
   }
-  if (anyOpen('#ideasModal')) {
-    if (e.key === 'Escape') $('#ideasModal').classList.add('hidden');
+  if (anyOpen('#ideasModal', '#gifModal')) {
+    if (e.key === 'Escape') { $('#ideasModal').classList.add('hidden'); $('#gifModal').classList.add('hidden'); }
     return;
   }
   if (anyOpen('#tileModal', '#setModal', '#themeModal')) {
@@ -468,10 +468,10 @@ function renderPageSeg() {
     box.appendChild(b);
   });
 }
-function openEditor(i) {
-  edIndex = i; edPage = page;
+function openEditor(i, draft, draftPage) {
+  edIndex = i; edPage = draftPage ?? page;
   const x = curTiles()[i];
-  ed = x ? JSON.parse(JSON.stringify(x)) : { id: uid(), label: '', icon: '', color: COLORS[i % COLORS.length], type: 'app', target: '' };
+  ed = draft || (x ? JSON.parse(JSON.stringify(x)) : { id: uid(), label: '', icon: '', color: COLORS[i % COLORS.length], type: 'app', target: '' });
   // the old "rainbow" effect is now the RGB frame
   if (ed.fx === 'rainbow') { delete ed.fx; ed.ring = ed.ring || { mode: 'rainbow', glow: false }; }
   $('#tileModalTitle').textContent = x ? t('editKey') : t('newKey');
@@ -532,6 +532,47 @@ $('#fMediaPick').onclick = async () => {
   renderMediaSeg(); updatePreview();
 };
 $('#fMediaClear').onclick = () => { delete ed.media; renderMediaSeg(); updatePreview(); };
+
+// ---- "Make a GIF with ChatGPT": builds a detailed prompt, copies it, opens ChatGPT ----
+let gStyle = 0, resumeEditor = null;
+function renderGifModal() {
+  const box = $('#gIdeas'); box.innerHTML = '';
+  window.GIF_IDEAS.forEach(([e, en, he]) => {
+    const b = document.createElement('button'); b.className = 'chip-btn'; b.textContent = e + ' ' + (lang() === 'he' ? he : en).split(/,| with | עם /)[0].slice(0, 26);
+    b.title = lang() === 'he' ? he : en;
+    b.onclick = () => { $('#gWhat').value = e + ' ' + (lang() === 'he' ? he : en); $('#gWhat').focus(); };
+    box.appendChild(b);
+  });
+  const seg = $('#gStyle'); seg.innerHTML = '';
+  window.GIF_STYLES.forEach(([, en, he], i) => {
+    const b = document.createElement('button'); b.textContent = lang() === 'he' ? he : en; b.classList.toggle('on', i === gStyle);
+    b.onclick = () => { gStyle = i; renderGifModal(); };
+    seg.appendChild(b);
+  });
+  $('#gUseColorText').textContent = t('aiUseColor', { c: '⁦' + ed.color + '⁩' });
+}
+function gifPrompt() {
+  const what = $('#gWhat').value.trim();
+  if (!what) return null;
+  const color = $('#gUseColor').checked ? `\nMAIN COLOR: ${ed.color} (match the key's color)` : '';
+  return window.GIF_PROMPT.replace('{WHAT}', what).replace('{STYLE}', window.GIF_STYLES[gStyle][0]).replace('{COLOR}', color);
+}
+$('#fMediaAi').onclick = () => {
+  renderGifModal(); $('#gifModal').classList.remove('hidden'); $('#gWhat').focus();
+};
+$('#gClose').onclick = () => $('#gifModal').classList.add('hidden');
+$('#gCopy').onclick = () => {
+  const p = gifPrompt(); if (!p) { toast(t('aiNeedWhat')); return $('#gWhat').focus(); }
+  window.qd.copy(p); toast(t('aiCopied'));
+};
+$('#gGo').onclick = () => {
+  const p = gifPrompt(); if (!p) { toast(t('aiNeedWhat')); return $('#gWhat').focus(); }
+  window.qd.copy(p);
+  // QuickDeck hides when the browser opens; keep the key being edited and bring it back next time
+  resumeEditor = { i: edIndex, ed: JSON.parse(JSON.stringify(ed)), edPage, page };
+  $('#gifModal').classList.add('hidden');
+  window.qd.openUrl('https://chatgpt.com/');
+};
 $('#fHideLabel').onchange = () => { ed.hideLabel = $('#fHideLabel').checked; updatePreview(); };
 function renderSwatches(box, current, onPick) { renderSwatchList(box, COLORS, current, onPick); }
 function renderSwatchList(box, list, current, onPick) {
@@ -632,7 +673,7 @@ $('#tileCancel').onclick = closeModals;
 
 function closeModals() {
   if (askConfirm.pending) askConfirm.pending(false);
-  ['#tileModal', '#setModal', '#ideasModal', '#themeModal'].forEach(s => $(s).classList.add('hidden'));
+  ['#tileModal', '#setModal', '#ideasModal', '#themeModal', '#gifModal'].forEach(s => $(s).classList.add('hidden'));
   window.qd.pin(false); qEl.focus();
 }
 document.querySelectorAll('.modal').forEach(m => m.addEventListener('mousedown', (e) => {
@@ -768,6 +809,10 @@ document.addEventListener('drop', async (e) => {
 // ---------- lifecycle ----------
 window.qd.on('shown', () => {
   qEl.value = ''; sel = 0; if (!editing) renderAll(); qEl.focus();
+  if (resumeEditor) {
+    const r = resumeEditor; resumeEditor = null;
+    if (cfg.pages[r.page]) { page = r.page; renderAll(); openEditor(r.i, r.ed, r.edPage); toast(t('aiStep3')); }
+  }
   document.querySelectorAll('video').forEach(v => v.play().catch(() => {}));
 });
 window.qd.on('hidden', () => {

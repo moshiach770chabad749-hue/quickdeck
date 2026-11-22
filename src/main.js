@@ -371,6 +371,11 @@ ipcMain.handle('themes:export', async (_e, theme) => {
 });
 ipcMain.on('themes:folder', () => { fs.mkdirSync(THEMES_DIR, { recursive: true }); shell.openPath(THEMES_DIR); });
 ipcMain.on('clip', (_e, text) => clipboard.writeText(String(text)));
+// opens a website from inside the app (https only), then gets out of the way
+ipcMain.on('open-url', (_e, url) => {
+  if (!/^https:\/\//i.test(String(url))) return;
+  win.__pinned = false; shell.openExternal(String(url)); hideWindow();
+});
 ipcMain.on('pin', (_e, v) => { win.__pinned = !!v; });
 ipcMain.on('hide', hideWindow);
 ipcMain.handle('reset', (_e, lang) => { config = defaultConfig(lang); saveConfig(); registerHotkey(config.hotkey); updateTrayMenu(); return config; });

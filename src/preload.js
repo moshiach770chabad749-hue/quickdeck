@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld('qd', {
   exportTheme: (t) => ipcRenderer.invoke('themes:export', t),
   themesFolder: () => ipcRenderer.send('themes:folder'),
   copy: (text) => ipcRenderer.send('clip', text),
+  openUrl: (url) => ipcRenderer.send('open-url', url),
   pin: (v) => ipcRenderer.send('pin', v),
   hide: () => ipcRenderer.send('hide'),
   reset: (lang) => ipcRenderer.invoke('reset', lang),

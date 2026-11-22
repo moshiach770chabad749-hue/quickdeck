@@ -85,6 +85,7 @@
           <div class="field"><span data-i18n="mediaField"></span>
             <div class="row wrap">
               <button class="btn ghost" id="fMediaPick" data-i18n="pickFile"></button>
+              <button class="btn ideas-btn" id="fMediaAi" data-i18n="aiGifBtn"></button>
               <div class="seg mini" id="fMediaMode">
                 <button data-v="cover" data-i18n="mediaCover"></button>
                 <button data-v="icon" data-i18n="mediaIcon"></button>
@@ -206,6 +207,35 @@
       <div class="actions">
         <span class="spacer"></span>
         <button class="btn ghost" id="ideasClose" data-i18n="back"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Make a GIF with ChatGPT -->
+  <div class="modal hidden" id="gifModal">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h2 data-i18n="aiTitle"></h2>
+      </div>
+      <p class="hint" data-i18n="aiIntro"></p>
+      <div class="field"><span data-i18n="aiWhat"></span>
+        <input id="gWhat" data-i18n-ph="aiWhatPh">
+        <div class="chips-row" id="gIdeas"></div>
+      </div>
+      <div class="field"><span data-i18n="aiStyle"></span>
+        <div class="seg wrap" id="gStyle"></div>
+      </div>
+      <label class="check"><input type="checkbox" id="gUseColor" checked> <span id="gUseColorText"></span></label>
+      <ol class="ai-steps">
+        <li data-i18n="aiStep1"></li>
+        <li data-i18n="aiStep2"></li>
+        <li data-i18n="aiStep3"></li>
+      </ol>
+      <div class="actions">
+        <button class="btn ghost" id="gClose" data-i18n="back"></button>
+        <span class="spacer"></span>
+        <button class="btn ghost" id="gCopy" data-i18n="aiCopyOnly"></button>
+        <button class="btn primary" id="gGo" data-i18n="aiCopyOpen"></button>
       </div>
     </div>
   </div>

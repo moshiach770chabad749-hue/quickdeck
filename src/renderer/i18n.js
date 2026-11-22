@@ -15,6 +15,14 @@ window.I18N = {
     mediaCover: 'Full background', mediaIcon: 'As icon', remove: 'Remove', mediaNone: 'None yet',
     effect: 'Live effect', fxTheme: 'Theme default', fxNone: 'None', fxShine: 'Shine', fxPulse: 'Pulse', fxRainbow: 'Rainbow',
     fxBreathe: 'Breathe', fxFloat: 'Float', fxFlow: 'Flow', fxGlitch: 'Glitch',
+    aiGifBtn: '🤖 Make with ChatGPT', aiTitle: '🤖 Make a live GIF with ChatGPT',
+    aiIntro: 'Describe the animation you want. QuickDeck writes a detailed prompt, and ChatGPT draws the GIF with code and gives you a download link.',
+    aiWhat: 'What should the key show?', aiWhatPh: 'e.g. a lightning bolt striking with blue sparks', aiStyle: 'Style',
+    aiUseColor: 'Use this key\'s color ({c})',
+    aiStep1: 'Click "Copy and open ChatGPT", then paste (Ctrl+V) and send.',
+    aiStep2: 'Download the file it makes (key.webp is the sharpest).',
+    aiStep3: 'Come back and click "Choose file…", or drag the file onto the key.',
+    aiCopyOnly: 'Copy only', aiCopyOpen: '📋 Copy and open ChatGPT', aiCopied: 'Prompt copied. Paste it into ChatGPT with Ctrl+V', aiNeedWhat: 'Write what the key should show',
     ringField: 'Frame around the key', ringNone: 'No frame', ringColor: 'Color', ringRgb: '🌈 RGB', ringGlow: 'Glow',
     ringAll: 'Use this frame on every key on this page', ringAllDone: 'Frame set on {n} keys',
     hideLabel: 'Hide the name on the key', del: 'Delete', cancel: 'Cancel', save: 'Save', close: 'Close', untitled: 'Untitled',
@@ -59,6 +67,14 @@ window.I18N = {
     mediaCover: 'רקע מלא', mediaIcon: 'כאייקון', remove: 'הסר', mediaNone: 'עדיין אין',
     effect: 'אפקט חי', fxTheme: 'לפי הערכה', fxNone: 'ללא', fxShine: 'ברק', fxPulse: 'פעימה', fxRainbow: 'קשת',
     fxBreathe: 'נשימה', fxFloat: 'ריחוף', fxFlow: 'זרימה', fxGlitch: "גליץ'",
+    aiGifBtn: '🤖 צור עם ChatGPT', aiTitle: '🤖 יצירת GIF חי עם ChatGPT',
+    aiIntro: 'מתארים איזו אנימציה רוצים. QuickDeck כותב פרומפט מפורט, ו-ChatGPT מצייר את ה-GIF בקוד ונותן קישור להורדה.',
+    aiWhat: 'מה הכפתור יראה?', aiWhatPh: 'למשל: ברק שמכה עם ניצוצות כחולים', aiStyle: 'סגנון',
+    aiUseColor: 'השתמש בצבע של הכפתור ({c})',
+    aiStep1: 'לוחצים "העתק ופתח את ChatGPT", מדביקים (Ctrl+V) ושולחים.',
+    aiStep2: 'מורידים את הקובץ שהוא יוצר (key.webp הכי חד).',
+    aiStep3: 'חוזרים ולוחצים "בחר קובץ…", או גוררים את הקובץ על הכפתור.',
+    aiCopyOnly: 'העתק בלבד', aiCopyOpen: '📋 העתק ופתח את ChatGPT', aiCopied: 'הפרומפט הועתק. הדביקו ב-ChatGPT עם Ctrl+V', aiNeedWhat: 'כתבו מה הכפתור יראה',
     ringField: 'מסגרת מסביב לכפתור', ringNone: 'בלי מסגרת', ringColor: 'צבע', ringRgb: '🌈 RGB', ringGlow: 'זוהר',
     ringAll: 'החל את המסגרת על כל הכפתורים בדף', ringAllDone: 'המסגרת הוגדרה ל-{n} כפתורים',
     hideLabel: 'הסתר את השם על הכפתור', del: 'מחק', cancel: 'ביטול', save: 'שמור', close: 'סגור', untitled: 'ללא שם',
@@ -89,6 +105,50 @@ window.I18N = {
     defMain: 'ראשי', defWork: 'עבודה'
   }
 };
+
+// Quick ideas and styles for the "Make a GIF with ChatGPT" window. Text is [English, Hebrew].
+window.GIF_IDEAS = [
+  ['⚡', 'A lightning bolt striking down with electric sparks and a blue-white glow', 'ברק שמכה למטה עם ניצוצות חשמל וזוהר כחול-לבן'],
+  ['🔥', 'Dancing fire flames with embers floating up', 'להבות אש מרקדות עם גחלים שעולות למעלה'],
+  ['🎵', 'A music equalizer with bars jumping to the beat in RGB colors', 'אקולייזר מוזיקה עם פסים שקופצים לקצב בצבעי RGB'],
+  ['🔴', 'A red recording dot blinking with expanding rings', 'נקודת הקלטה אדומה שמהבהבת עם טבעות שמתרחבות'],
+  ['🌀', 'A swirling glowing portal', 'פורטל זוהר שמסתובב'],
+  ['🎮', 'A game controller with pulsing neon buttons', 'שלט משחק עם כפתורי ניאון שפועמים'],
+  ['💬', 'A chat bubble that bounces with little sparkles', 'בועת צ\'אט שקופצת עם נצנוצים קטנים'],
+  ['🌧️', 'Rain falling on a window with soft city lights behind', 'גשם שיורד על חלון עם אורות עיר רכים מאחור'],
+  ['❤️', 'A beating heart with a soft pulse glow', 'לב פועם עם הילה רכה'],
+  ['🌌', 'A slowly rotating galaxy with twinkling stars', 'גלקסיה שמסתובבת לאט עם כוכבים מנצנצים']
+];
+window.GIF_STYLES = [
+  ['neon glow, dark background, vivid colors', 'Neon', 'ניאון'],
+  ['realistic, cinematic lighting', 'Realistic', 'מציאותי'],
+  ['cute cartoon, bold outlines', 'Cartoon', 'מצויר'],
+  ['retro pixel art, crisp pixels', 'Pixel art', 'פיקסל ארט'],
+  ['clean minimal flat design, smooth motion', 'Minimal', 'מינימליסטי'],
+  ['shiny 3D, soft shadows', '3D', 'תלת-ממד']
+];
+// Prompt for an animated key GIF. {WHAT} {STYLE} {COLOR} are filled in by the app.
+window.GIF_PROMPT = `You are an animation designer. Create an animated key icon for QuickDeck, a Windows launcher that looks like a physical stream deck with LCD keys.
+
+WHAT I WANT:
+{WHAT}
+
+STYLE: {STYLE}{COLOR}
+
+Technical requirements:
+- Build it yourself with Python (Pillow + numpy) in your code tool. Draw every frame with code; don't use a still image.
+- Size: 256x256 square. Draw at 512x512 and scale down for smooth edges.
+- Perfect seamless loop: 30-40 frames, ~60 ms per frame. Drive all motion with t = frame / total_frames and periodic functions (sin/cos), so the last frame flows into the first with no jump.
+- Make it feel alive: glow (layers blurred with GaussianBlur and added on top), light flicker, particles or sparks, slight pulse where it fits.
+- Background that fills the whole square (dark unless the style says otherwise), so it looks good on a key. Keep the bottom 20% a little calmer, because the key's name may appear there.
+- No text in the image unless I ask for it.
+- Save 2 files:
+  1. key.gif: loop=0, disposal=2, optimize=True, adaptive 256-color palette, under 2 MB.
+  2. key.webp: animated WebP, same frames, quality 90 (sharper colors).
+- Give me download links to both files and show a preview of one frame.
+- If you can't run code, give me the full Python script and how to run it.
+
+Then ask if I want changes (speed, colors, more effects).`;
 
 // Prompt the user pastes into ChatGPT (or any AI) to get a theme file back.
 window.THEME_PROMPT = `You are a theme designer for QuickDeck, a Windows launcher that looks like a physical stream deck (a device with a grid of LCD keys).
