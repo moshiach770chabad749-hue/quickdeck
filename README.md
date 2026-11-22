@@ -1,27 +1,33 @@
 # QuickDeck
 
-מרכז קיצורי דרך מהיר ללוח כפתורים בסגנון לוח סטרימינג, לווינדוס 10 ו-11, בעברית מלאה.
+A stream-deck style launcher for Windows 10 and 11. It looks like a real hardware deck, with live keys.
 
-לוחצים `Ctrl+Shift+Space` מכל מקום, ונפתח חלון שבו אפשר:
+Press `Ctrl+Shift+Space` anywhere and a deck of keys pops up:
 
-- **לחפש** כל תוכנה שמותקנת במחשב, כל כפתור וכל אתר (גם `ksp.co.il` בלי https).
-- **ללחוץ על לוח כפתורים** צבעוני שבונים בעצמכם: תוכנות, תיקיות, אתרים ופקודות.
-- **לסדר בדפים** (עבודה, בית, משחקים) ולהעביר כפתורים ביניהם.
-- **לבחור מ-56 רעיונות מוכנים**: אתרים, פקודות כיבוי ושינה, הגדרות ווינדוס, וקיצורים לאנשים.
-- **לגרור קובץ או תיקייה** מהסייר לריבוע ריק כדי ליצור כפתור.
+- **Search** any installed app, any key or any website (`example.com` works without https).
+- **Click keys** you build yourself: apps, folders, websites and commands.
+- **Live keys:** give any key a GIF, image or video background, plus effects like shine, pulse, rainbow and glitch.
+- **Themes:** 7 built-in looks (Classic, Cyber Neon, Aurora, Galaxy, Synthwave, Black & Gold, Ocean), or make your own `.qdtheme` file with ChatGPT. See [THEMES.md](THEMES.md).
+- **Pages** (work, home, games) with drag-and-drop between them.
+- **59 ready-made ideas:** websites, shutdown and sleep, Windows settings and people shortcuts.
+- **English or Hebrew:** switch in Settings.
 
-**אתר:** https://moshiach770chabad749-hue.github.io/quickdeck/
+**Website:** https://moshiach770chabad749-hue.github.io/quickdeck/
 
-## הורדה
+## Download
 
-את המתקין מורידים מדף [Releases](../../releases/latest).
+Get the installer from [Releases](../../releases/latest).
 
-ווינדוס עשוי להציג אזהרת SmartScreen כי למתקין אין חתימה דיגיטלית: לוחצים "מידע נוסף" ואז "הפעל בכל זאת".
+Windows may show a SmartScreen warning because the installer isn't digitally signed. Click "More info", then "Run anyway".
 
-## פיתוח
+## Development
 
 ```
 npm install
-npm start      # הרצה
-npm run dist   # בניית מתקין לתיקייה dist
+npm start      # run
+npm run dist   # build the installer into dist
 ```
+
+---
+
+**בעברית:** QuickDeck הוא מרכז קיצורי דרך בסגנון לוח סטרימינג, עם כפתורים חיים (GIF, וידאו ואפקטים) וערכות נושא שאפשר ליצור עם ChatGPT. התוכנה באנגלית כברירת מחדל, ואפשר לעבור לעברית בהגדרות.

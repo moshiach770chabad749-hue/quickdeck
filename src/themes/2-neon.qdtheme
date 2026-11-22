@@ -1,0 +1,12 @@
+{
+  "qdtheme": 1,
+  "name": "Cyber Neon",
+  "nameHe": "ניאון סייבר",
+  "author": "QuickDeck",
+  "description": "Black keys with pulsing neon outlines",
+  "descriptionHe": "מקשים שחורים עם מסגרת ניאון זוהרת שפועמת",
+  "accent": "#ff2bd6",
+  "device": { "body": "linear-gradient(180deg,#140a22,#07040d)", "border": "rgba(255,43,214,.45)", "glow": "#ff2bd6", "radius": 22, "bezel": "rgba(0,0,0,.55)" },
+  "background": { "type": "css", "value": "radial-gradient(80% 60% at 50% 120%, rgba(255,43,214,.35), transparent 70%), radial-gradient(60% 50% at 0% 0%, rgba(0,229,255,.18), transparent 70%), #07040d", "effect": "scanlines" },
+  "keys": { "style": "neon", "radius": 12, "gap": 12, "colorMode": "tile", "labelColor": "#ffe9fb", "effect": "pulse", "press": "glow", "hover": "glow", "empty": "dashed" }
+}

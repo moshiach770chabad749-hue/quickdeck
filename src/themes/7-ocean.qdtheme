@@ -1,0 +1,12 @@
+{
+  "qdtheme": 1,
+  "name": "Ocean",
+  "nameHe": "אוקיינוס",
+  "author": "QuickDeck",
+  "description": "Deep blue water, rising bubbles and glass keys",
+  "descriptionHe": "מים כחולים עם בועות שעולות ומקשי זכוכית",
+  "accent": "#38bdf8",
+  "device": { "body": "rgba(2,30,50,.8)", "border": "rgba(56,189,248,.3)", "glow": "#38bdf8", "radius": 28, "bezel": "rgba(0,10,20,.2)" },
+  "background": { "type": "css", "value": "radial-gradient(70% 50% at 50% 0%, rgba(125,211,252,.35), transparent 70%), linear-gradient(180deg,#034063,#022a44 50%,#011526)", "effect": "bubbles" },
+  "keys": { "style": "glass", "radius": 18, "gap": 12, "colorMode": "tile", "labelColor": "#ffffff", "effect": "breathe", "press": "ripple", "hover": "lift", "empty": "dashed" }
+}

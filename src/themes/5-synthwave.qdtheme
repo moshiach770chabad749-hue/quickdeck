@@ -1,0 +1,16 @@
+{
+  "qdtheme": 1,
+  "name": "Synthwave",
+  "nameHe": "סינת'ווייב",
+  "author": "QuickDeck",
+  "description": "Retro sunset, moving grid and floating icons",
+  "descriptionHe": "שקיעה רטרו עם רשת זזה ואייקונים מרחפים",
+  "accent": "#ff4f9a",
+  "device": { "body": "linear-gradient(180deg,#2a0b3d,#12041f)", "border": "rgba(255,79,154,.4)", "glow": "#ff4f9a", "radius": 24, "bezel": "rgba(10,0,25,.3)" },
+  "background": {
+    "type": "svg",
+    "value": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 500' preserveAspectRatio='xMidYMid slice'><defs><linearGradient id='s' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#120428'/><stop offset='.55' stop-color='#5b0f6b'/><stop offset='1' stop-color='#ff5d8f'/></linearGradient><linearGradient id='u' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#ffe66d'/><stop offset='1' stop-color='#ff2e88'/></linearGradient><mask id='m'><rect width='800' height='500' fill='#fff'/><rect y='300' width='800' height='6' fill='#000'/><rect y='318' width='800' height='8' fill='#000'/><rect y='338' width='800' height='10' fill='#000'/><rect y='360' width='800' height='12' fill='#000'/></mask></defs><rect width='800' height='500' fill='url(#s)'/><circle cx='400' cy='330' r='150' fill='url(#u)' mask='url(#m)'><animate attributeName='cy' values='330;316;330' dur='8s' repeatCount='indefinite'/></circle><path d='M0 390 L120 300 L210 360 L300 280 L420 370 L520 300 L640 360 L720 310 L800 350 L800 500 L0 500Z' fill='#1a0633'/><rect y='392' width='800' height='108' fill='#0d0221'/></svg>",
+    "effect": "grid"
+  },
+  "keys": { "style": "glass", "radius": 14, "gap": 12, "colorMode": "tile", "labelColor": "#ffffff", "effect": "float", "press": "glow", "hover": "glow", "empty": "dashed" }
+}

@@ -1,23 +1,31 @@
 <!doctype html>
-<html lang="he" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: qd-media: https:; media-src 'self' data: blob: qd-media: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: qd-media: https://fonts.gstatic.com">
   <title>QuickDeck</title>
   <link rel="stylesheet" href="styles.css">
+  <style id="themeCss"></style>
 </head>
 <body>
   <div class="panel" id="panel">
+    <div id="bg"></div>
+    <div id="bgOverlay"></div>
+    <div id="bgFx"></div>
+
     <header class="top">
       <div class="search">
         <svg viewBox="0 0 24 24" class="search-ico"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-        <input id="q" type="text" placeholder="הקלד שם תוכנה, תיקייה או אתר…" autocomplete="off" spellcheck="false">
+        <input id="q" type="text" data-i18n-ph="searchPh" autocomplete="off" spellcheck="false">
         <kbd id="hotkeyHint">Ctrl+Shift+Space</kbd>
       </div>
-      <button class="icon-btn" id="editBtn" title="מצב עריכה (Ctrl+E)">
+      <button class="icon-btn" id="themeBtn" data-i18n-title="themesTitle">
+        <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.8 1.6-1.6 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.7-1.6 1.6-1.6H16a5 5 0 0 0 5-5c0-4.1-4-7.4-9-7.4z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7" r="1.2"/></svg>
+      </button>
+      <button class="icon-btn" id="editBtn" data-i18n-title="editModeTitle">
         <svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/></svg>
       </button>
-      <button class="icon-btn" id="settingsBtn" title="הגדרות">
+      <button class="icon-btn" id="settingsBtn" data-i18n-title="settingsTitle">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
       </button>
     </header>
@@ -30,56 +38,82 @@
     </main>
 
     <footer class="foot" id="foot">
-      <span><kbd>↵</kbd> הפעלה</span>
-      <span><kbd>↑↓←→</kbd> ניווט</span>
-      <span><kbd>Ctrl</kbd>+<kbd>1-9</kbd> מעבר דף</span>
-      <span><kbd>קליק ימני</kbd> עריכת כפתור</span>
-      <span><kbd>Esc</kbd> סגירה</span>
+      <span><kbd>↵</kbd> <i data-i18n="fRun"></i></span>
+      <span><kbd>↑↓←→</kbd> <i data-i18n="fNav"></i></span>
+      <span><kbd>Ctrl</kbd>+<kbd>1-9</kbd> <i data-i18n="fPage"></i></span>
+      <span><kbd data-i18n="fRight"></kbd> <i data-i18n="fEditKey"></i></span>
+      <span><kbd>Esc</kbd> <i data-i18n="fEsc"></i></span>
     </footer>
-    <div class="edit-banner hidden" id="editBanner">מצב עריכה · לחץ על כפתור לעריכה · גרור להזזה · גרור קובץ מהסייר לריבוע ריק</div>
+    <div class="edit-banner hidden" id="editBanner" data-i18n="editBanner"></div>
+    <div class="leds"><span></span><span></span><span></span></div>
   </div>
 
-  <!-- Tile editor -->
+  <!-- Key editor -->
   <div class="modal hidden" id="tileModal">
     <div class="sheet">
       <div class="sheet-head">
-        <h2 id="tileModalTitle">עריכת כפתור</h2>
-        <button class="btn ideas-btn" id="ideasBtn">💡 רעיונות מוכנים</button>
+        <h2 id="tileModalTitle"></h2>
+        <button class="btn ideas-btn" id="ideasBtn" data-i18n="ideasBtn"></button>
       </div>
       <div class="editor">
         <div class="preview-wrap"><div class="tile preview" id="tilePreview"></div></div>
         <div class="fields">
-          <label>שם<input id="fLabel" maxlength="24"></label>
-          <div class="field">סוג פעולה
+          <div class="field"><span data-i18n="name"></span><input id="fLabel" maxlength="24"></div>
+          <div class="field"><span data-i18n="actionType"></span>
             <div class="seg" id="fType">
-              <button data-v="app">תוכנה / קובץ</button>
-              <button data-v="folder">תיקייה</button>
-              <button data-v="url">אתר</button>
-              <button data-v="command">פקודה</button>
+              <button data-v="app" data-i18n="tApp"></button>
+              <button data-v="folder" data-i18n="tFolder"></button>
+              <button data-v="url" data-i18n="tUrl"></button>
+              <button data-v="command" data-i18n="tCommand"></button>
             </div>
           </div>
-          <div class="field"><span id="fTargetLabel">נתיב</span>
-            <div class="row"><input id="fTarget" dir="ltr"><button class="btn ghost" id="fBrowse">עיון…</button></div>
+          <div class="field"><span id="fTargetLabel"></span>
+            <div class="row"><input id="fTarget" dir="ltr"><button class="btn ghost" id="fBrowse" data-i18n="browse"></button></div>
           </div>
-          <div class="field">דף
+          <div class="field"><span data-i18n="page"></span>
             <div class="seg pages-seg" id="fPage"></div>
           </div>
-          <div class="field">אייקון (בחר מהרשימה או הקלד אימוג'י)
+          <div class="field"><span data-i18n="iconField"></span>
             <div class="row">
-              <input id="fIcon" class="emoji-in" placeholder="😀" title="הקלד או הדבק אימוג'י">
-              <button class="btn ghost" id="fUseFileIcon">אייקון של הקובץ</button>
-              <button class="btn ghost" id="fNoIcon">ללא אייקון</button>
+              <input id="fIcon" class="emoji-in" placeholder="😀">
+              <button class="btn ghost" id="fUseFileIcon" data-i18n="fileIcon"></button>
+              <button class="btn ghost" id="fNoIcon" data-i18n="noIcon"></button>
             </div>
             <div class="emojis" id="emojiPick"></div>
           </div>
-          <div class="field">צבע<div class="swatches" id="swatches"></div></div>
+          <div class="field"><span data-i18n="color"></span><div class="swatches" id="swatches"></div></div>
+          <div class="field"><span data-i18n="mediaField"></span>
+            <div class="row wrap">
+              <button class="btn ghost" id="fMediaPick" data-i18n="pickFile"></button>
+              <div class="seg mini" id="fMediaMode">
+                <button data-v="cover" data-i18n="mediaCover"></button>
+                <button data-v="icon" data-i18n="mediaIcon"></button>
+              </div>
+              <button class="btn ghost" id="fMediaClear" data-i18n="remove"></button>
+              <span class="hint" id="fMediaName"></span>
+            </div>
+          </div>
+          <div class="field"><span data-i18n="effect"></span>
+            <div class="seg wrap" id="fFx">
+              <button data-v="" data-i18n="fxTheme"></button>
+              <button data-v="none" data-i18n="fxNone"></button>
+              <button data-v="shine" data-i18n="fxShine"></button>
+              <button data-v="pulse" data-i18n="fxPulse"></button>
+              <button data-v="rainbow" data-i18n="fxRainbow"></button>
+              <button data-v="breathe" data-i18n="fxBreathe"></button>
+              <button data-v="float" data-i18n="fxFloat"></button>
+              <button data-v="flow" data-i18n="fxFlow"></button>
+              <button data-v="glitch" data-i18n="fxGlitch"></button>
+            </div>
+          </div>
+          <label class="check"><input type="checkbox" id="fHideLabel"> <span data-i18n="hideLabel"></span></label>
         </div>
       </div>
       <div class="actions">
-        <button class="btn danger" id="tileDelete">מחק</button>
+        <button class="btn danger" id="tileDelete" data-i18n="del"></button>
         <span class="spacer"></span>
-        <button class="btn ghost" id="tileCancel">ביטול</button>
-        <button class="btn primary" id="tileSave">שמור</button>
+        <button class="btn ghost" id="tileCancel" data-i18n="cancel"></button>
+        <button class="btn primary" id="tileSave" data-i18n="save"></button>
       </div>
     </div>
   </div>
@@ -87,25 +121,63 @@
   <!-- Settings -->
   <div class="modal hidden" id="setModal">
     <div class="sheet small">
-      <h2>הגדרות</h2>
-      <label>קיצור מקשים לפתיחה
-        <input id="sHotkey" readonly dir="ltr" placeholder="לחץ כאן ואז על צירוף המקשים">
-      </label>
-      <div class="row2">
-        <label>עמודות<input id="sCols" type="number" min="3" max="8"></label>
-        <label>שורות<input id="sRows" type="number" min="2" max="6"></label>
+      <h2 data-i18n="settings"></h2>
+      <div class="field"><span data-i18n="language"></span>
+        <div class="seg" id="sLang">
+          <button data-v="en">English</button>
+          <button data-v="he">עברית</button>
+        </div>
       </div>
-      <div class="field">צבע ראשי<div class="swatches" id="sAccent"></div></div>
-      <label class="check"><input type="checkbox" id="sLogin"> הפעל אוטומטית עם עליית ווינדוס</label>
+      <div class="field"><span data-i18n="hotkey"></span>
+        <input id="sHotkey" readonly dir="ltr" data-i18n-ph="hotkeyPh">
+      </div>
+      <div class="row2">
+        <div class="field"><span data-i18n="cols"></span><input id="sCols" type="number" min="3" max="8"></div>
+        <div class="field"><span data-i18n="rows"></span><input id="sRows" type="number" min="2" max="6"></div>
+      </div>
+      <div class="field"><span data-i18n="accent"></span><div class="swatches" id="sAccent"></div></div>
+      <label class="check"><input type="checkbox" id="sLogin"> <span data-i18n="login"></span></label>
       <div class="row">
-        <button class="btn ghost" id="sRefresh">רענן רשימת תוכנות</button>
-        <button class="btn ghost danger-text" id="sReset">איפוס לברירת מחדל</button>
+        <button class="btn ghost" id="sRefresh" data-i18n="refreshApps"></button>
+        <button class="btn ghost danger-text" id="sReset" data-i18n="resetAll"></button>
       </div>
       <p class="msg" id="sMsg"></p>
       <div class="actions">
         <span class="spacer"></span>
-        <button class="btn ghost" id="setCancel">ביטול</button>
-        <button class="btn primary" id="setSave">שמור</button>
+        <button class="btn ghost" id="setCancel" data-i18n="cancel"></button>
+        <button class="btn primary" id="setSave" data-i18n="save"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Themes -->
+  <div class="modal hidden" id="themeModal">
+    <div class="sheet wide">
+      <div class="sheet-head">
+        <h2 data-i18n="themes"></h2>
+        <span class="hint" data-i18n="themesHint"></span>
+      </div>
+      <div class="themes" id="themeList"></div>
+      <div class="field"><span data-i18n="customBg"></span>
+        <div class="row">
+          <button class="btn ghost" id="bgPick" data-i18n="pickFile"></button>
+          <button class="btn ghost" id="bgClear" data-i18n="remove"></button>
+          <span class="hint" id="bgName"></span>
+        </div>
+      </div>
+      <div class="theme-make">
+        <div class="tm-text"><b data-i18n="makeTitle"></b><p class="hint" data-i18n="makeText"></p></div>
+        <div class="row wrap">
+          <button class="btn primary" id="copyPrompt" data-i18n="copyPrompt"></button>
+          <button class="btn primary alt" id="pasteTheme" data-i18n="pasteTheme"></button>
+          <button class="btn ghost" id="themeImport" data-i18n="importFile"></button>
+          <button class="btn ghost" id="themeExport" data-i18n="exportTheme"></button>
+          <button class="btn ghost" id="themeFolder" data-i18n="themesFolder"></button>
+        </div>
+      </div>
+      <div class="actions">
+        <span class="spacer"></span>
+        <button class="btn ghost" id="themeClose" data-i18n="close"></button>
       </div>
     </div>
   </div>
@@ -114,14 +186,14 @@
   <div class="modal hidden" id="ideasModal">
     <div class="sheet">
       <div class="sheet-head">
-        <h2>💡 רעיונות מוכנים</h2>
-        <span class="hint">לחץ על רעיון כדי למלא את הכפתור</span>
+        <h2 data-i18n="ideasTitle"></h2>
+        <span class="hint" data-i18n="ideasHint"></span>
       </div>
       <div class="seg" id="ideaCats"></div>
       <div class="ideas" id="ideaList"></div>
       <div class="actions">
         <span class="spacer"></span>
-        <button class="btn ghost" id="ideasClose">חזרה</button>
+        <button class="btn ghost" id="ideasClose" data-i18n="back"></button>
       </div>
     </div>
   </div>
@@ -129,17 +201,18 @@
   <!-- In-app confirm (native confirm() steals focus and hides the window) -->
   <div class="modal hidden" id="askModal">
     <div class="sheet small">
-      <h2 id="askTitle">אישור</h2>
+      <h2 id="askTitle"></h2>
       <p id="askText" class="ask-text"></p>
       <div class="actions">
         <span class="spacer"></span>
-        <button class="btn ghost" id="askNo">ביטול</button>
-        <button class="btn danger" id="askYes">מחק</button>
+        <button class="btn ghost" id="askNo" data-i18n="cancel"></button>
+        <button class="btn danger" id="askYes"></button>
       </div>
     </div>
   </div>
 
   <div class="toast hidden" id="toast"></div>
+  <script src="i18n.js"></script>
   <script src="ideas.js"></script>
   <script src="app.js"></script>
 </body>

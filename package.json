@@ -1,8 +1,8 @@
 {
   "name": "quickdeck",
   "productName": "QuickDeck",
-  "version": "1.0.0",
-  "description": "מרכז קיצורי דרך מהיר ולוח כפתורים בסגנון לוח סטרימינג לווינדוס",
+  "version": "1.1.0",
+  "description": "Stream-deck style launcher for Windows: live GIF keys, themes, English and Hebrew",
   "author": "QuickDeck",
   "main": "src/main.js",
   "scripts": {
@@ -12,8 +12,13 @@
   "build": {
     "appId": "com.quickdeck.app",
     "productName": "QuickDeck",
-    "directories": { "output": "dist" },
-    "files": ["src/**/*", "package.json"],
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
     "win": {
       "icon": "src/icon.png",
       "target": "nsis",
@@ -27,10 +32,21 @@
       "createStartMenuShortcut": true,
       "shortcutName": "QuickDeck",
       "runAfterFinish": true,
-      "installerLanguages": ["he_IL", "en_US"],
-      "language": "1037",
+      "installerLanguages": [
+        "en_US",
+        "he_IL"
+      ],
+      "language": "1033",
       "artifactName": "QuickDeck-Setup-${version}.${ext}"
-    }
+    },
+    "fileAssociations": [
+      {
+        "ext": "qdtheme",
+        "name": "QuickDeck Theme",
+        "description": "QuickDeck theme",
+        "role": "Viewer"
+      }
+    ]
   },
   "devDependencies": {
     "electron": "45.4.1",

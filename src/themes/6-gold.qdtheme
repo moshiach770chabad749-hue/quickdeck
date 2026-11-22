@@ -1,0 +1,12 @@
+{
+  "qdtheme": 1,
+  "name": "Black & Gold",
+  "nameHe": "שחור-זהב",
+  "author": "QuickDeck",
+  "description": "Black metal keys, gold labels and a passing shine",
+  "descriptionHe": "מקשי מתכת שחורים עם כיתוב זהב וברק שעובר עליהם",
+  "accent": "#e8c372",
+  "device": { "body": "linear-gradient(180deg,#1f1b15,#0c0b09)", "border": "rgba(232,195,114,.35)", "glow": "#e8c372", "radius": 22, "bezel": "rgba(0,0,0,.5)" },
+  "background": { "type": "css", "value": "radial-gradient(90% 70% at 50% 0%, rgba(232,195,114,.16), transparent 60%), #0b0a08", "effect": "none" },
+  "keys": { "style": "metal", "radius": 12, "gap": 12, "colorMode": "theme", "background": "linear-gradient(160deg,#2c2822,#100f0d)", "border": "rgba(232,195,114,.55)", "labelColor": "#f3d58e", "labelFont": "Georgia, 'Times New Roman', serif", "effect": "shine", "press": "sink", "hover": "glow", "empty": "key" }
+}

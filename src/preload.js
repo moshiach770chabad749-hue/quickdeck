@@ -8,9 +8,18 @@ contextBridge.exposeInMainWorld('qd', {
   launch: (item) => ipcRenderer.invoke('launch', item),
   icon: (p) => ipcRenderer.invoke('icon', p),
   pick: (kind) => ipcRenderer.invoke('dialog:pick', kind),
+  pickMedia: () => ipcRenderer.invoke('media:pick'),
+  importMedia: (p) => ipcRenderer.invoke('media:import', p),
+  listThemes: () => ipcRenderer.invoke('themes:list'),
+  importTheme: (p) => ipcRenderer.invoke('themes:import', p),
+  pasteTheme: () => ipcRenderer.invoke('themes:paste'),
+  deleteTheme: (id) => ipcRenderer.invoke('themes:delete', id),
+  exportTheme: (t) => ipcRenderer.invoke('themes:export', t),
+  themesFolder: () => ipcRenderer.send('themes:folder'),
+  copy: (text) => ipcRenderer.send('clip', text),
   pin: (v) => ipcRenderer.send('pin', v),
   hide: () => ipcRenderer.send('hide'),
-  reset: () => ipcRenderer.invoke('reset'),
+  reset: (lang) => ipcRenderer.invoke('reset', lang),
   pathForFile: (f) => { try { return webUtils.getPathForFile(f); } catch { return f.path || ''; } },
-  on: (ch, fn) => ipcRenderer.on(ch, () => fn())
+  on: (ch, fn) => ipcRenderer.on(ch, (_e, data) => fn(data))
 });

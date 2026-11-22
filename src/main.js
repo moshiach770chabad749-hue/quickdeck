@@ -1,12 +1,22 @@
 // QuickDeck - main process
-const { app, BrowserWindow, globalShortcut, ipcMain, shell, Tray, Menu, nativeImage, dialog, screen } = require('electron');
+const { app, BrowserWindow, globalShortcut, ipcMain, shell, Tray, Menu, nativeImage, dialog, screen, protocol, clipboard } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { Readable } = require('stream');
 const { exec } = require('child_process');
 
 if (!app.requestSingleInstanceLock()) { app.quit(); process.exit(0); }
 
+// qd-media://media/<file>  -> user media (GIFs, images, videos copied into the app)
+// qd-media://themes/<id>/<file> -> assets of an imported theme
+protocol.registerSchemesAsPrivileged([{ scheme: 'qd-media', privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true } }]);
+
 const CONFIG_PATH = path.join(app.getPath('userData'), 'config.json');
+const MEDIA_DIR = path.join(app.getPath('userData'), 'media');
+const THEMES_DIR = path.join(app.getPath('userData'), 'themes');
+const BUILTIN_THEMES = path.join(__dirname, 'themes');
+const MIME = { gif: 'image/gif', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', apng: 'image/apng', svg: 'image/svg+xml', avif: 'image/avif', mp4: 'video/mp4', webm: 'video/webm', mov: 'video/mp4', woff2: 'font/woff2', woff: 'font/woff', ttf: 'font/ttf', otf: 'font/otf' };
+const MEDIA_EXT = ['gif', 'png', 'jpg', 'jpeg', 'webp', 'apng', 'svg', 'avif', 'mp4', 'webm'];
 let win = null;
 let tray = null;
 let config = null;
@@ -16,9 +26,21 @@ const iconCache = new Map();
 // ---------- config ----------
 function uid() { return Math.random().toString(36).slice(2, 10); }
 
-function defaultConfig() {
-  const t = (label, icon, color, type, target) => ({ id: uid(), label, icon, color, type, target });
+const STR = {
+  en: { main: 'Main', work: 'Work', open: 'Open QuickDeck', refresh: 'Refresh app list', exit: 'Exit',
+    keys: ['File Explorer', 'Desktop', 'Downloads', 'Documents', 'Calculator', 'Google', 'YouTube', 'WhatsApp', 'Screenshot', 'Settings', 'Lock PC', 'Task Manager', 'Notepad', 'Recycle Bin'] },
+  he: { main: 'ראשי', work: 'עבודה', open: 'פתח את QuickDeck', refresh: 'רענן רשימת תוכנות', exit: 'יציאה',
+    keys: ['סייר קבצים', 'שולחן עבודה', 'הורדות', 'מסמכים', 'מחשבון', 'Google', 'YouTube', 'WhatsApp', 'צילום מסך', 'הגדרות', 'נעילת מחשב', 'מנהל משימות', 'פנקס רשימות', 'סל מחזור'] }
+};
+const S = () => STR[config && config.lang === 'he' ? 'he' : 'en'];
+
+function defaultConfig(lang = 'en') {
+  const s = STR[lang === 'he' ? 'he' : 'en'];
+  let n = 0;
+  const t = (icon, color, type, target) => ({ id: uid(), label: s.keys[n++], icon, color, type, target });
   return {
+    lang: lang === 'he' ? 'he' : 'en',
+    theme: '1-classic',
     hotkey: 'Ctrl+Shift+Space',
     cols: 5,
     rows: 3,
@@ -26,26 +48,26 @@ function defaultConfig() {
     openAtLogin: false,
     pages: [
       {
-        id: uid(), name: 'ראשי',
+        id: uid(), name: s.main,
         tiles: [
-          t('סייר קבצים', '📁', '#f5a524', 'app', 'explorer.exe'),
-          t('שולחן עבודה', '🖥️', '#3b82f6', 'folder', app.getPath('desktop')),
-          t('הורדות', '⬇️', '#10b981', 'folder', app.getPath('downloads')),
-          t('מסמכים', '📄', '#6366f1', 'folder', app.getPath('documents')),
-          t('מחשבון', '🧮', '#64748b', 'app', 'calc.exe'),
-          t('Google', '🔍', '#ea4335', 'url', 'https://www.google.com'),
-          t('YouTube', '▶️', '#ff0033', 'url', 'https://www.youtube.com'),
-          t('WhatsApp', '💬', '#25d366', 'url', 'https://web.whatsapp.com'),
-          t('צילום מסך', '✂️', '#ec4899', 'url', 'ms-screenclip:'),
-          t('הגדרות', '⚙️', '#475569', 'url', 'ms-settings:'),
-          t('נעילת מחשב', '🔒', '#ef4444', 'command', 'rundll32.exe user32.dll,LockWorkStation'),
-          t('מנהל משימות', '📊', '#0ea5e9', 'app', 'taskmgr.exe'),
-          t('פנקס רשימות', '📝', '#a855f7', 'app', 'notepad.exe'),
-          t('סל מחזור', '🗑️', '#78716c', 'url', 'shell:RecycleBinFolder'),
+          t('📁', '#f5a524', 'app', 'explorer.exe'),
+          t('🖥️', '#3b82f6', 'folder', app.getPath('desktop')),
+          t('⬇️', '#10b981', 'folder', app.getPath('downloads')),
+          t('📄', '#6366f1', 'folder', app.getPath('documents')),
+          t('🧮', '#64748b', 'app', 'calc.exe'),
+          t('🔍', '#ea4335', 'url', 'https://www.google.com'),
+          t('▶️', '#ff0033', 'url', 'https://www.youtube.com'),
+          t('💬', '#25d366', 'url', 'https://web.whatsapp.com'),
+          t('✂️', '#ec4899', 'url', 'ms-screenclip:'),
+          t('⚙️', '#475569', 'url', 'ms-settings:'),
+          t('🔒', '#ef4444', 'command', 'rundll32.exe user32.dll,LockWorkStation'),
+          t('📊', '#0ea5e9', 'app', 'taskmgr.exe'),
+          t('📝', '#a855f7', 'app', 'notepad.exe'),
+          t('🗑️', '#78716c', 'url', 'shell:RecycleBinFolder'),
           null
         ]
       },
-      { id: uid(), name: 'עבודה', tiles: [] }
+      { id: uid(), name: s.work, tiles: [] }
     ]
   };
 }
@@ -125,19 +147,24 @@ function createTray() {
   const img = nativeImage.createFromPath(path.join(__dirname, 'icon.png'));
   tray = new Tray(img.isEmpty() ? nativeImage.createEmpty() : img.resize({ width: 16, height: 16 }));
   tray.setToolTip('QuickDeck');
-  tray.setContextMenu(Menu.buildFromTemplate([
-    { label: 'פתח את QuickDeck', click: showWindow },
-    { label: 'רענן רשימת תוכנות', click: buildIndex },
-    { type: 'separator' },
-    { label: 'יציאה', click: () => { app.isQuitting = true; app.quit(); } }
-  ]));
+  updateTrayMenu();
   tray.on('click', toggleWindow);
+}
+function updateTrayMenu() {
+  if (!tray) return;
+  const s = S();
+  tray.setContextMenu(Menu.buildFromTemplate([
+    { label: s.open, click: showWindow },
+    { label: s.refresh, click: buildIndex },
+    { type: 'separator' },
+    { label: s.exit, click: () => { app.isQuitting = true; app.quit(); } }
+  ]));
 }
 
 // ---------- launching ----------
 async function launch(item) {
   const { type, target } = item;
-  if (!target) return { ok: false, error: 'אין יעד' };
+  if (!target) return { ok: false, error: 'No target' };
   try {
     if (type === 'url' || /^(https?:|ms-[\w-]+:|shell:|mailto:)/i.test(target)) {
       if (/^shell:/i.test(target)) exec(`explorer.exe "${target}"`);
@@ -160,11 +187,125 @@ async function launch(item) {
   } catch (e) { return { ok: false, error: String(e.message || e) }; }
 }
 
+// ---------- media (GIF / image / video for keys and backgrounds) ----------
+const extOf = (p) => (path.extname(p).slice(1) || '').toLowerCase();
+const kindOf = (p) => (/^(mp4|webm|mov)$/.test(extOf(p)) ? 'video' : 'image');
+
+function serveFile(full, req) {
+  const stat = fs.statSync(full);
+  const type = MIME[extOf(full)] || 'application/octet-stream';
+  const range = req.headers.get('range');
+  const m = range && /bytes=(\d*)-(\d*)/.exec(range);
+  if (m) {
+    const start = m[1] ? +m[1] : 0;
+    const end = Math.min(m[2] ? +m[2] : stat.size - 1, stat.size - 1);
+    return new Response(Readable.toWeb(fs.createReadStream(full, { start, end })), {
+      status: 206,
+      headers: { 'Content-Type': type, 'Content-Range': `bytes ${start}-${end}/${stat.size}`, 'Accept-Ranges': 'bytes', 'Content-Length': String(end - start + 1) }
+    });
+  }
+  return new Response(Readable.toWeb(fs.createReadStream(full)), { headers: { 'Content-Type': type, 'Content-Length': String(stat.size), 'Accept-Ranges': 'bytes' } });
+}
+
+function registerMediaProtocol() {
+  protocol.handle('qd-media', (req) => {
+    try {
+      const u = new URL(req.url);
+      const base = path.resolve(u.host === 'themes' ? THEMES_DIR : MEDIA_DIR);
+      const full = path.resolve(base, decodeURIComponent(u.pathname).replace(/^\/+/, ''));
+      if (!full.startsWith(base + path.sep) || !fs.existsSync(full)) return new Response('not found', { status: 404 });
+      return serveFile(full, req);
+    } catch { return new Response('error', { status: 500 }); }
+  });
+}
+
+function importMedia(file) {
+  if (!file || !fs.existsSync(file) || !MEDIA_EXT.includes(extOf(file))) return null;
+  fs.mkdirSync(MEDIA_DIR, { recursive: true });
+  const name = uid() + '.' + extOf(file);
+  fs.copyFileSync(file, path.join(MEDIA_DIR, name));
+  return { src: 'qd-media://media/' + name, kind: kindOf(file), name: path.basename(file) };
+}
+
+// ---------- themes (.qdtheme = JSON, anyone can write one, e.g. with ChatGPT) ----------
+function parseTheme(raw) {
+  let s = String(raw || '').replace(/^﻿/, '');
+  const fence = /```(?:json|qdtheme)?\s*([\s\S]*?)```/i.exec(s);
+  if (fence) s = fence[1];
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if (a < 0 || b < a) throw new Error('no JSON found');
+  s = s.slice(a, b + 1).replace(/,\s*([}\]])/g, '$1'); // tolerate trailing commas
+  const t = JSON.parse(s);
+  if (!t || typeof t !== 'object' || !t.name) throw new Error('missing "name" field');
+  return t;
+}
+
+function readThemeFile(file, id, builtin) {
+  try { return { ...parseTheme(fs.readFileSync(file, 'utf8')), id, builtin }; } catch { return null; }
+}
+
+function listThemes() {
+  const out = [];
+  try {
+    for (const f of fs.readdirSync(BUILTIN_THEMES).sort()) {
+      if (f.endsWith('.qdtheme')) { const t = readThemeFile(path.join(BUILTIN_THEMES, f), f.replace(/\.qdtheme$/, ''), true); if (t) out.push(t); }
+    }
+  } catch {}
+  try {
+    const dirs = fs.readdirSync(THEMES_DIR, { withFileTypes: true }).filter(d => d.isDirectory());
+    dirs.sort((x, y) => fs.statSync(path.join(THEMES_DIR, x.name)).mtimeMs - fs.statSync(path.join(THEMES_DIR, y.name)).mtimeMs);
+    for (const d of dirs) { const t = readThemeFile(path.join(THEMES_DIR, d.name, 'theme.qdtheme'), d.name, false); if (t) out.push(t); }
+  } catch {}
+  return out;
+}
+
+// saves a theme (from a file or pasted text) into the themes folder, copying any GIF/image/video it uses
+function saveTheme(raw, srcDir) {
+  const t = parseTheme(raw);
+  const slug = String(t.name).toLowerCase().replace(/[^a-z0-9֐-׿]+/gi, '-').replace(/^-|-$/g, '').slice(0, 24) || 'theme';
+  const id = slug + '-' + uid().slice(0, 4);
+  const dir = path.join(THEMES_DIR, id);
+  fs.mkdirSync(dir, { recursive: true });
+  const fix = (ref) => {
+    if (!ref || typeof ref !== 'string' || /^(data:|https?:|qd-media:)/i.test(ref) || /^\s*</.test(ref) || !srcDir) return ref;
+    const p = path.isAbsolute(ref) ? ref : path.join(srcDir, ref);
+    if (!fs.existsSync(p) || !fs.statSync(p).isFile()) return ref;
+    const name = path.basename(p);
+    fs.copyFileSync(p, path.join(dir, name));
+    return `qd-media://themes/${id}/${encodeURIComponent(name)}`;
+  };
+  const bg = t.background;
+  if (bg && typeof bg === 'object') for (const k of ['value', 'src']) if (bg[k]) bg[k] = fix(bg[k]);
+  if (typeof t.css === 'string') t.css = t.css.replace(/url\(\s*(['"]?)([^'")]+)\1\s*\)/g, (m, q, u) => `url("${fix(u.trim())}")`);
+  delete t.id; delete t.builtin;
+  fs.writeFileSync(path.join(dir, 'theme.qdtheme'), JSON.stringify(t, null, 2), 'utf8');
+  return id;
+}
+
+function importThemeFile(file) {
+  const id = saveTheme(fs.readFileSync(file, 'utf8'), path.dirname(file));
+  config.theme = id; saveConfig();
+  return id;
+}
+
+// a .qdtheme double-clicked in Explorer arrives as a command-line argument
+function handleThemeArgs(argv) {
+  const f = (argv || []).find(a => /\.qdtheme$/i.test(a) && fs.existsSync(a));
+  if (!f || !win) return;
+  try {
+    const id = importThemeFile(f);
+    win.webContents.send('theme-imported', { id });
+  } catch (e) { win.webContents.send('theme-error', String(e.message || e)); }
+  showWindow();
+}
+
 // ---------- IPC ----------
 ipcMain.handle('config:get', () => config);
 ipcMain.handle('config:save', (_e, c) => {
   const hotkeyChanged = c.hotkey !== config.hotkey;
+  const langChanged = c.lang !== config.lang;
   config = c; saveConfig();
+  if (langChanged) updateTrayMenu();
   app.setLoginItemSettings({ openAtLogin: !!config.openAtLogin });
   if (hotkeyChanged) return { ok: registerHotkey(config.hotkey) };
   return { ok: true };
@@ -189,19 +330,56 @@ ipcMain.handle('dialog:pick', async (_e, kind) => {
   win.__pinned = true;
   const r = await dialog.showOpenDialog(win, {
     properties: [kind === 'folder' ? 'openDirectory' : 'openFile'],
-    filters: kind === 'folder' ? [] : [{ name: 'תוכנות וקבצים', extensions: ['exe', 'lnk', 'bat', 'cmd', '*'] }]
+    filters: kind === 'folder' ? [] : [{ name: 'Apps and files', extensions: ['exe', 'lnk', 'bat', 'cmd', '*'] }]
   });
   win.__pinned = false; win.focus();
   return r.canceled ? null : r.filePaths[0];
 });
+async function pickWith(opts) {
+  win.__pinned = true;
+  const r = await dialog.showOpenDialog(win, opts);
+  win.__pinned = false; win.focus();
+  return r.canceled ? null : r.filePaths[0];
+}
+ipcMain.handle('media:pick', async () => importMedia(await pickWith({
+  properties: ['openFile'],
+  filters: [{ name: 'GIF, images and video', extensions: MEDIA_EXT }]
+})));
+ipcMain.handle('media:import', (_e, p) => importMedia(p));
+ipcMain.handle('themes:list', () => listThemes());
+ipcMain.handle('themes:import', async (_e, p) => {
+  const f = p || await pickWith({ properties: ['openFile'], filters: [{ name: 'QuickDeck theme', extensions: ['qdtheme', 'json', 'txt'] }] });
+  if (!f) return { ok: false };
+  try { return { ok: true, id: importThemeFile(f) }; } catch (e) { return { ok: false, error: String(e.message || e) }; }
+});
+ipcMain.handle('themes:paste', async () => {
+  try { const txt = String(await clipboard.readText() || ''); const id = saveTheme(txt, null); config.theme = id; saveConfig(); return { ok: true, id }; }
+  catch (e) { return { ok: false, error: String(e.message || e) }; }
+});
+ipcMain.handle('themes:delete', (_e, id) => {
+  const dir = path.resolve(THEMES_DIR, String(id));
+  if (!dir.startsWith(path.resolve(THEMES_DIR) + path.sep)) return false;
+  fs.rmSync(dir, { recursive: true, force: true }); return true;
+});
+ipcMain.handle('themes:export', async (_e, theme) => {
+  win.__pinned = true;
+  const r = await dialog.showSaveDialog(win, { defaultPath: (theme.name || 'theme') + '.qdtheme', filters: [{ name: 'QuickDeck Theme', extensions: ['qdtheme'] }] });
+  win.__pinned = false; win.focus();
+  if (r.canceled || !r.filePath) return false;
+  const t = { ...theme }; delete t.id; delete t.builtin;
+  fs.writeFileSync(r.filePath, JSON.stringify(t, null, 2), 'utf8'); return true;
+});
+ipcMain.on('themes:folder', () => { fs.mkdirSync(THEMES_DIR, { recursive: true }); shell.openPath(THEMES_DIR); });
+ipcMain.on('clip', (_e, text) => clipboard.writeText(String(text)));
 ipcMain.on('pin', (_e, v) => { win.__pinned = !!v; });
 ipcMain.on('hide', hideWindow);
-ipcMain.handle('reset', () => { config = defaultConfig(); saveConfig(); registerHotkey(config.hotkey); return config; });
+ipcMain.handle('reset', (_e, lang) => { config = defaultConfig(lang); saveConfig(); registerHotkey(config.hotkey); updateTrayMenu(); return config; });
 
 // ---------- lifecycle ----------
-app.on('second-instance', showWindow);
+app.on('second-instance', (_e, argv) => { showWindow(); handleThemeArgs(argv); });
 app.whenReady().then(() => {
   app.setAppUserModelId('QuickDeck');
+  registerMediaProtocol();
   loadConfig();
   buildIndex();
   createWindow();
@@ -216,6 +394,7 @@ app.whenReady().then(() => {
   }
   win.webContents.once('did-finish-load', () => {
     showWindow();
+    setTimeout(() => handleThemeArgs(process.argv.slice(1)), 600);
     // dev self-check: QD_SNAP=<file.png> captures the window and quits
     if (process.env.QD_SNAP) {
       win.__pinned = true;

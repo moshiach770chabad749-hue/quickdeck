@@ -1,0 +1,12 @@
+{
+  "qdtheme": 1,
+  "name": "Aurora",
+  "nameHe": "זוהר צפוני",
+  "author": "QuickDeck",
+  "description": "Moving northern lights behind glass keys",
+  "descriptionHe": "זוהר צבעוני שזז מאחורי מקשי זכוכית",
+  "accent": "#34f5c5",
+  "device": { "body": "rgba(8,18,28,.82)", "border": "rgba(52,245,197,.25)", "glow": "#34f5c5", "radius": 28, "bezel": "rgba(0,0,0,.18)" },
+  "background": { "type": "css", "value": "linear-gradient(160deg,#04121c,#0a1f2e 50%,#120a24)", "effect": "aurora" },
+  "keys": { "style": "glass", "radius": 16, "gap": 12, "colorMode": "tile", "labelColor": "#ffffff", "effect": "shine", "press": "ripple", "hover": "lift", "empty": "dashed" }
+}

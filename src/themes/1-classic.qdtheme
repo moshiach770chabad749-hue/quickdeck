@@ -1,0 +1,12 @@
+{
+  "qdtheme": 1,
+  "name": "Classic",
+  "nameHe": "קלאסי",
+  "author": "QuickDeck",
+  "description": "Black hardware with LCD keys, like a real stream deck",
+  "descriptionHe": "מכשיר שחור עם מקשי מסך, כמו לוח סטרימינג אמיתי",
+  "accent": "#7c5cff",
+  "device": { "body": "linear-gradient(180deg,#2a2a33 0%,#17171d 55%,#0f0f13 100%)", "border": "rgba(255,255,255,.1)", "glow": "#7c5cff", "radius": 26, "bezel": "rgba(0,0,0,.5)" },
+  "background": { "type": "css", "value": "radial-gradient(120% 80% at 85% -10%, rgba(124,92,255,.25), transparent 60%)", "effect": "none" },
+  "keys": { "style": "lcd", "radius": 14, "gap": 12, "colorMode": "tile", "labelColor": "#ffffff", "effect": "none", "press": "sink", "hover": "lift", "empty": "key" }
+}
