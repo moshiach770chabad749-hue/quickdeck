@@ -91,7 +91,8 @@ async function iconHtml(item) {
 // builds the inner HTML of a key (screen + media + icon + label)
 function keyInner(item) {
   const cover = item.media && item.media.mode !== 'icon' ? mediaTag(item.media, 'media') : '';
-  return `<div class="screen">${cover}<div class="ico${item.media && item.media.mode === 'icon' ? ' big' : ''}"></div><div class="lbl">${esc(item.label || t('untitled'))}</div></div>`;
+  // the frame has its own elements, so theme CSS on .tile::before / ::after can't hide it
+  return `<i class="qd-glow"></i><i class="qd-ring"></i><div class="screen">${cover}<div class="ico${item.media && item.media.mode === 'icon' ? ' big' : ''}"></div><div class="lbl">${esc(item.label || t('untitled'))}</div></div>`;
 }
 // key frame: per key (item.ring) or theme default (keys.ring: "none" | "rainbow" | "#hex")
 function ringOf(item) {
