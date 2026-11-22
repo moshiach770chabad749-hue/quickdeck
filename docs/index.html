@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="QuickDeck: מרכז קיצורי דרך עם לוח כפתורים בסגנון לוח סטרימינג, לווינדוס, בעברית.">
-<meta property="og:title" content="QuickDeck">
-<meta property="og:description" content="כל המחשב שלך, במרחק לחיצה אחת. מרכז קיצורי דרך ולוח כפתורים לווינדוס, בעברית.">
+<meta name="description" content="QuickDeck: a free stream-deck style launcher for Windows with live GIF keys, themes you can design with ChatGPT, in English and Hebrew.">
+<meta property="og:title" content="QuickDeck: a stream deck, right on your screen">
+<meta property="og:description" content="Live GIF and video keys, 7 themes, and .qdtheme files you can make with ChatGPT. Free for Windows 10 and 11.">
 <link rel="icon" href="icon.png">
 </head>
 <body><title>QuickDeck</title>
@@ -13,7 +13,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;800&family=Heebo:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-/* Layout: a live, working replica of the app is the hero; everything else is quiet text around keycaps and colored tiles. */
+/* Layout: a live replica of the hardware-style deck is the hero, with a theme switcher under it.
+   The rest is quiet text: features, the ChatGPT theme flow, ideas, FAQ, download. */
 :root {
   --bg: #f3f4f7;
   --surface: #ffffff;
@@ -22,11 +23,10 @@
   --line: #dfe2ea;
   --accent: #2f55ff;
   --accent-ink: #ffffff;
-  --panel: #191a24;
-  --panel-text: #eef0f6;
-  --panel-muted: #8f93a8;
   --key-top: #ffffff;
   --key-side: #c9cdd8;
+  --code-bg: #15171f;
+  --code-ink: #e6e8f0;
   --font-display: "Rubik", "Segoe UI", Arial, sans-serif;
   --font-body: "Heebo", "Segoe UI", Arial, sans-serif;
   --font-mono: "JetBrains Mono", Consolas, monospace;
@@ -35,14 +35,12 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0f1016; --surface: #171923; --ink: #eceef5; --muted: #9a9fb3; --line: #272a38;
-    --accent: #7b93ff; --accent-ink: #0f1016; --panel: #1d1f2b; --panel-text: #eef0f6; --panel-muted: #8f93a8;
-    --key-top: #2a2d3c; --key-side: #11131b; color-scheme: dark;
+    --accent: #7b93ff; --accent-ink: #0f1016; --key-top: #2a2d3c; --key-side: #11131b; --code-bg: #0a0b10; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0f1016; --surface: #171923; --ink: #eceef5; --muted: #9a9fb3; --line: #272a38;
-  --accent: #7b93ff; --accent-ink: #0f1016; --panel: #1d1f2b; --panel-text: #eef0f6; --panel-muted: #8f93a8;
-  --key-top: #2a2d3c; --key-side: #11131b; color-scheme: dark;
+  --accent: #7b93ff; --accent-ink: #0f1016; --key-top: #2a2d3c; --key-side: #11131b; --code-bg: #0a0b10; color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -63,13 +61,17 @@ p { margin: 0; }
 .nav .spacer { flex: 1; }
 .nav a.link { text-decoration: none; color: var(--muted); font-size: 15px; }
 .nav a.link:hover { color: var(--ink); }
+.lang { display: inline-flex; border: 1.5px solid var(--line); border-radius: 10px; padding: 2px; gap: 2px; }
+.lang button { border: 0; background: none; color: var(--muted); font: 600 13.5px var(--font-body); padding: 5px 10px; border-radius: 7px; cursor: pointer; }
+.lang button.on { background: var(--ink); color: var(--bg); }
 .btn { display: inline-flex; align-items: center; gap: 8px; border: 0; cursor: pointer; text-decoration: none; font: 600 16px var(--font-body); border-radius: 12px; padding: 13px 22px; transition: transform .12s, box-shadow .12s; }
 .btn-primary { background: var(--accent); color: var(--accent-ink); box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 35%, transparent); }
 .btn-primary:hover { transform: translateY(-2px); }
 .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
 .btn-ghost:hover { border-color: var(--ink); }
 .btn-sm { padding: 9px 16px; font-size: 14.5px; border-radius: 10px; }
-@media (max-width: 640px) { .nav a.link { display: none; } }
+@media (max-width: 720px) { .nav a.link { display: none; } }
+@media (max-width: 420px) { .nav .btn-sm { display: none; } }
 
 /* hero */
 .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 56px; align-items: center; padding-block: 36px 80px; }
@@ -79,7 +81,8 @@ p { margin: 0; }
 .hero h1 { font-size: clamp(38px, 5.4vw, 64px); font-weight: 800; letter-spacing: -.01em; }
 .hero h1 em { font-style: normal; color: var(--accent); }
 .lede { font-size: 19px; color: var(--muted); margin-top: 20px; max-width: 34em; }
-.combo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 30px; }
+.combo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 30px; direction: ltr; justify-content: flex-start; }
+[dir="rtl"] .combo { justify-content: flex-end; }
 .combo .plus { color: var(--muted); font-family: var(--font-mono); }
 .combo .say { color: var(--muted); font-size: 15px; margin-inline-start: 6px; }
 .key {
@@ -89,57 +92,120 @@ p { margin: 0; }
 }
 .key.down { transform: translateY(3px); box-shadow: 0 1px 0 var(--key-side); color: var(--accent); }
 .ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 34px; align-items: center; }
-.fine { font-size: 13.5px; color: var(--muted); font-family: var(--font-mono); direction: rtl; }
 
-/* demo window: always dark, like the real app */
+/* ===== demo: a hardware-style deck. Always dark, like the real app ===== */
 .demo-shell { position: relative; }
-.demo-shell::before { content: ""; position: absolute; inset: 8% -4% -6% 6%; border-radius: 40px; background: conic-gradient(from 200deg, #f5a524, #ef4444, #ec4899, #3b82f6, #10b981, #f5a524); filter: blur(60px); opacity: .28; z-index: 0; }
+.demo-shell::before { content: ""; position: absolute; inset: 8% -4% -6% 6%; border-radius: 40px; background: var(--dglow); filter: blur(70px); opacity: .35; z-index: 0; transition: background .4s; }
 .demo {
-  position: relative; z-index: 1; background: var(--panel); color: var(--panel-text); border-radius: 22px; padding: 16px;
-  border: 1px solid rgba(255,255,255,.08); box-shadow: 0 30px 70px rgba(10,12,30,.35);
+  --dbody: linear-gradient(180deg, #2a2a33, #0f0f13); --dborder: rgba(255,255,255,.1); --dglow: #7c5cff; --dbezel: rgba(0,0,0,.5); --dbg: radial-gradient(120% 80% at 85% -10%, rgba(124,92,255,.28), transparent 60%);
+  --lbl: #fff; --kbg: linear-gradient(160deg, #2c2822, #100f0d); --kborder: rgba(255,255,255,.08);
+  position: relative; z-index: 1; color: #eef0f6; border-radius: 26px; padding: 16px; overflow: hidden; isolation: isolate;
+  background: var(--dbody); border: 1px solid var(--dborder);
+  box-shadow: 0 30px 70px rgba(10,12,30,.4), 0 0 26px -6px var(--dglow), inset 0 1px 0 rgba(255,255,255,.1);
   transition: transform .22s cubic-bezier(.2,.9,.3,1.2), opacity .18s;
 }
 .demo.closed { transform: scale(.94) translateY(10px); opacity: .25; }
+.dbg { position: absolute; inset: 0; z-index: -1; background: var(--dbg); background-size: cover; transition: background .4s; overflow: hidden; }
+.dbg::before, .dbg::after { content: ""; position: absolute; pointer-events: none; }
+.leds { position: absolute; top: 7px; inset-inline-end: 22px; display: flex; gap: 5px; }
+.leds i { width: 4px; height: 4px; border-radius: 50%; background: var(--dglow); box-shadow: 0 0 6px var(--dglow); }
+.leds i:nth-child(2) { animation: led 2.6s infinite; }
+.leds i:nth-child(3) { background: #3dff8b; box-shadow: 0 0 6px #3dff8b; }
+@keyframes led { 50% { opacity: .2; } }
+/* background effects */
+.e-aurora .dbg::before { width: 75%; height: 85%; top: -25%; left: -15%; border-radius: 50%; filter: blur(40px); opacity: .6; background: radial-gradient(circle, #34f5c5, transparent 65%); animation: aur1 14s ease-in-out infinite alternate; }
+.e-aurora .dbg::after { width: 75%; height: 85%; bottom: -30%; right: -15%; border-radius: 50%; filter: blur(40px); opacity: .55; background: radial-gradient(circle, #a855f7, transparent 65%); animation: aur2 17s ease-in-out infinite alternate; }
+@keyframes aur1 { to { transform: translate(45%, 30%) scale(1.25); } }
+@keyframes aur2 { to { transform: translate(-40%, -25%) scale(1.15); } }
+.e-grid .dbg::before { left: -50%; right: -50%; bottom: -10%; height: 50%; background-image: linear-gradient(rgba(255,79,154,.7) 2px, transparent 2px), linear-gradient(90deg, rgba(255,79,154,.7) 2px, transparent 2px); background-size: 40px 40px; transform: perspective(240px) rotateX(62deg); transform-origin: bottom; animation: gridmove 1.6s linear infinite; opacity: .55; -webkit-mask-image: linear-gradient(transparent, #000 60%); mask-image: linear-gradient(transparent, #000 60%); }
+.e-grid .dbg::after { width: 46%; aspect-ratio: 1; left: 27%; top: 18%; border-radius: 50%; background: repeating-linear-gradient(transparent 0 70%, rgba(13,2,33,.85) 70% 76%), linear-gradient(#ffe66d, #ff2e88); opacity: .75; }
+@keyframes gridmove { to { background-position: 0 40px; } }
+.e-scan .dbg::before { inset: 0; background: repeating-linear-gradient(0deg, rgba(255,255,255,.04) 0 1px, transparent 1px 3px); }
+.e-scan .dbg::after { left: 0; right: 0; height: 30%; background: linear-gradient(transparent, rgba(255,43,214,.14), transparent); animation: scan 6s linear infinite; }
+@keyframes scan { from { top: -30%; } to { top: 100%; } }
+.e-bubbles .dbg::before { inset: 0 0 -100% 0; background-image: radial-gradient(circle, rgba(255,255,255,.35) 0 3px, transparent 4px), radial-gradient(circle, rgba(255,255,255,.2) 0 6px, transparent 7px); background-size: 120px 160px, 200px 230px; background-position: 20px 0, 90px 40px; animation: rise 14s linear infinite; }
+@keyframes rise { to { transform: translateY(-50%); } }
+.e-stars .dbg::before { inset: -100% 0 0 0; background-image: radial-gradient(1.5px 1.5px at 20px 30px, #fff, transparent), radial-gradient(1px 1px at 90px 120px, #fff, transparent), radial-gradient(1.5px 1.5px at 160px 60px, #cfd8ff, transparent), radial-gradient(1px 1px at 230px 170px, #fff, transparent); background-size: 260px 200px; opacity: .8; animation: drift 50s linear infinite; }
+@keyframes drift { to { transform: translateY(50%); } }
+
 .d-top { display: flex; gap: 8px; }
-.d-search { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; border-radius: 13px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); }
-.d-search:focus-within { border-color: #7b93ff; box-shadow: 0 0 0 4px rgba(123,147,255,.18); }
-.d-search svg { width: 18px; height: 18px; flex: none; stroke: var(--panel-muted); fill: none; stroke-width: 2; }
-.d-search input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--panel-text); font: 500 16px var(--font-body); }
-.d-search input::placeholder { color: #6b6f85; }
-.d-search kbd { font: 11px var(--font-mono); color: var(--panel-muted); border: 1px solid rgba(255,255,255,.14); border-radius: 6px; padding: 2px 6px; direction: ltr; white-space: nowrap; }
+.d-search { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 14px; border-radius: 13px; background: rgba(0,0,0,.38); border: 1px solid rgba(255,255,255,.1); box-shadow: inset 0 2px 6px rgba(0,0,0,.45); }
+.d-search:focus-within { border-color: var(--dglow); }
+.d-search svg { width: 18px; height: 18px; flex: none; stroke: #8f93a8; fill: none; stroke-width: 2; }
+.d-search input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: #eef0f6; font: 500 16px var(--font-body); }
+.d-search input::placeholder { color: #7a7e94; }
+.d-search kbd { font: 11px var(--font-mono); color: #8f93a8; border: 1px solid rgba(255,255,255,.14); border-radius: 6px; padding: 2px 6px; direction: ltr; white-space: nowrap; }
 @media (max-width: 480px) { .d-search kbd { display: none; } }
-.d-icon { width: 48px; height: 48px; border-radius: 13px; display: grid; place-items: center; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); color: var(--panel-muted); }
+.d-icon { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.1); box-shadow: 0 3px 0 rgba(0,0,0,.5); color: #8f93a8; flex: none; }
 .d-tabs { display: flex; gap: 6px; margin: 12px 0; }
-.d-tab { background: none; border: 1px solid transparent; color: var(--panel-muted); font: 13px var(--font-body); padding: 5px 13px; border-radius: 99px; cursor: pointer; }
-.d-tab.on { background: rgba(255,255,255,.1); color: var(--panel-text); border-color: rgba(255,255,255,.1); }
-.d-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
-@media (max-width: 520px) { .d-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } .d-grid .tile:nth-child(n+13) { display: none; } }
-.tile {
-  --c: #3b3b52; aspect-ratio: 1 / .92; border: 0; border-radius: 15px; cursor: pointer; color: #fff; padding: 6px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; position: relative; overflow: hidden;
-  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 92%, white 12%), color-mix(in srgb, var(--c) 72%, black 40%));
-  box-shadow: 0 5px 12px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25), inset 0 -3px 0 rgba(0,0,0,.25);
-  transition: transform .12s, filter .12s; font-family: var(--font-body);
-}
-.tile::after { content: ""; position: absolute; inset: 0 0 55% 0; background: linear-gradient(rgba(255,255,255,.16), transparent); pointer-events: none; }
-.tile:hover { transform: translateY(-2px); filter: brightness(1.08); }
-.tile:active, .tile.hit { transform: scale(.93); filter: brightness(1.35); }
-.tile .g { font-size: clamp(20px, 2.6vw, 28px); line-height: 1; filter: drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
-.tile .l { font-size: 11.5px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
-.tile.empty { background: transparent; border: 1.5px dashed rgba(255,255,255,.1); box-shadow: none; cursor: default; }
-.tile.empty::after { display: none; }
-.d-results { display: flex; flex-direction: column; gap: 2px; min-height: 0; }
-.d-res { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 11px; }
-.d-res.sel { background: rgba(123,147,255,.22); }
+.d-tab { background: none; border: 1px solid transparent; color: #8f93a8; font: 13px var(--font-body); padding: 5px 13px; border-radius: 99px; cursor: pointer; }
+.d-tab.on { background: rgba(255,255,255,.1); color: #eef0f6; border-color: rgba(255,255,255,.1); box-shadow: 0 0 12px -4px var(--dglow); }
+.d-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; padding: 10px; background: var(--dbezel); border-radius: 20px; box-shadow: inset 0 3px 10px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.06); }
+@media (max-width: 520px) { .d-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; } .d-grid > :nth-child(n+13) { display: none; } }
+
+/* keys: .tile = cap, .scr = screen inside */
+.tile { --c: #3b3b52; aspect-ratio: 1 / .92; border: 0; padding: 0; border-radius: 14px; cursor: pointer; position: relative; font-family: var(--font-body); color: #fff; background: none; transition: transform .1s, filter .12s; isolation: isolate; }
+.scr { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 4px; z-index: 1;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 92%, white 12%), color-mix(in srgb, var(--c) 72%, black 40%)); }
+.scr::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 3; background: linear-gradient(165deg, rgba(255,255,255,.18), rgba(255,255,255,.04) 38%, transparent 40%); }
+.tile .g { font-size: clamp(18px, 2.4vw, 26px); line-height: 1; position: relative; z-index: 2; filter: drop-shadow(0 2px 2px rgba(0,0,0,.4)); }
+.tile .l { font-size: 11px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 3px rgba(0,0,0,.7); position: relative; z-index: 2; color: var(--lbl); }
+.tile:not(.empty):hover { transform: translateY(-2px); filter: brightness(1.08); }
+.tile.hit { transform: translateY(3px) scale(.97) !important; filter: brightness(1.4); }
+.tile.empty { cursor: default; }
+/* style: lcd + metal (cap with a screen inside) */
+.s-lcd .tile, .s-metal .tile { background: linear-gradient(180deg, #34343d, #16161b 70%); box-shadow: 0 4px 0 #050507, 0 6px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.14), inset 0 0 0 1px var(--kborder); }
+.s-metal .tile { background: repeating-linear-gradient(90deg, #3a3a40 0 1px, #2c2c31 1px 3px); box-shadow: 0 4px 0 #08080a, 0 6px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.25), inset 0 0 0 1px var(--kborder); }
+.s-lcd .scr { inset: 4px; border-radius: 10px; box-shadow: inset 0 0 10px rgba(0,0,0,.45); }
+.s-metal .scr { inset: 5px; border-radius: 9px; background: var(--kbg); box-shadow: inset 0 0 0 1px var(--kborder); }
+.s-lcd .tile.hit, .s-metal .tile.hit { box-shadow: 0 1px 0 #050507; }
+.s-lcd .tile.empty .scr, .s-metal .tile.empty .scr { background: radial-gradient(circle at 50% 40%, #121218, #050507); }
+/* style: glass */
+.s-glass .scr { background: color-mix(in srgb, var(--c) 40%, rgba(255,255,255,.05)); backdrop-filter: blur(10px) saturate(1.4); border: 1px solid rgba(255,255,255,.22); }
+.s-glass .tile.empty .scr { background: rgba(255,255,255,.03); border: 1.5px dashed rgba(255,255,255,.12); backdrop-filter: none; }
+.s-glass .tile.empty .scr::after { display: none; }
+/* style: neon */
+.s-neon .scr { background: rgba(6,4,14,.85); border: 1.5px solid color-mix(in srgb, var(--c) 90%, white); box-shadow: 0 0 9px color-mix(in srgb, var(--c) 70%, transparent), inset 0 0 12px color-mix(in srgb, var(--c) 40%, transparent); animation: pulse 2.4s ease-in-out infinite; animation-delay: var(--d); }
+.s-neon .g { filter: drop-shadow(0 0 6px var(--c)); }
+.s-neon .tile.empty .scr { border: 1.5px dashed rgba(255,255,255,.1); box-shadow: none; background: rgba(0,0,0,.3); animation: none; }
+@keyframes pulse { 50% { box-shadow: 0 0 16px 2px color-mix(in srgb, var(--c) 85%, transparent), inset 0 0 16px color-mix(in srgb, var(--c) 55%, transparent); } }
+/* theme-wide effects */
+.f-shine .tile:not(.empty) .scr::before { content: ""; position: absolute; inset: -60%; z-index: 3; background: linear-gradient(115deg, transparent 42%, rgba(255,255,255,.4) 50%, transparent 58%); animation: shine 4.5s ease-in-out infinite; animation-delay: var(--d); }
+@keyframes shine { 0%, 55% { transform: translateX(-55%); } 100% { transform: translateX(55%); } }
+.f-float .tile:not(.empty) .g { animation: float 3s ease-in-out infinite; animation-delay: var(--d); }
+@keyframes float { 50% { transform: translateY(-4px) scale(1.06); } }
+.f-breathe .tile:not(.empty) .scr { animation: breathe 3.2s ease-in-out infinite; animation-delay: var(--d); }
+@keyframes breathe { 50% { filter: brightness(1.3) saturate(1.2); } }
+/* "live" keys: stand-ins for a GIF / video on a key */
+.live-wave .scr { background: linear-gradient(120deg, #ff2e88, #7c5cff, #00c8ff, #ff2e88) !important; background-size: 300% 300% !important; animation: flow 5s ease infinite !important; }
+@keyframes flow { 50% { background-position: 100% 50%; } }
+.live-eq .scr { background: #08060f !important; }
+.eq { display: flex; align-items: flex-end; gap: 3px; height: 42%; position: relative; z-index: 2; }
+.eq i { width: 5px; border-radius: 2px; background: linear-gradient(#3dff8b, #00c8ff); animation: eq .9s ease-in-out infinite alternate; }
+.eq i:nth-child(2) { animation-delay: -.3s; } .eq i:nth-child(3) { animation-delay: -.6s; } .eq i:nth-child(4) { animation-delay: -.15s; } .eq i:nth-child(5) { animation-delay: -.45s; }
+@keyframes eq { from { height: 15%; } to { height: 100%; } }
+.live-ring::before { content: ""; position: absolute; inset: -2px; border-radius: 16px; z-index: 0; background: conic-gradient(from var(--ang), #ff004c, #ffb800, #3dff6e, #00c8ff, #a64bff, #ff004c); animation: spin 3s linear infinite; }
+@property --ang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@keyframes spin { to { --ang: 360deg; } }
+.live-rec .g { animation: rec 1.2s steps(1) infinite; }
+@keyframes rec { 50% { opacity: .25; } }
+
+.d-results { display: flex; flex-direction: column; gap: 2px; min-height: 0; margin-top: 12px; background: rgba(0,0,0,.35); border-radius: 16px; padding: 6px; }
+.d-res { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 11px; cursor: pointer; }
+.d-res.sel { background: color-mix(in srgb, var(--dglow) 30%, transparent); }
 .d-res .ri { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; font-size: 18px; flex: none; }
 .d-res .rt { flex: 1; min-width: 0; }
 .d-res .rn { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.d-res .rn mark { background: none; color: #9fb0ff; font-weight: 700; }
-.d-res .rs { font: 11px var(--font-mono); color: var(--panel-muted); direction: ltr; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.d-res .tag { font-size: 11px; color: var(--panel-muted); border: 1px solid rgba(255,255,255,.14); padding: 1px 8px; border-radius: 99px; flex: none; }
-.d-status { margin-top: 12px; font: 12px var(--font-mono); color: var(--panel-muted); text-align: center; min-height: 18px; }
-.d-status b { color: #9fb0ff; font-weight: 700; }
-.try { margin-top: 14px; font-size: 14px; color: var(--muted); text-align: center; }
+.d-res .rn mark { background: none; color: #b3c0ff; font-weight: 700; }
+.d-res .rs { font: 11px var(--font-mono); color: #8f93a8; direction: ltr; text-align: start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.d-res .tag { font-size: 11px; color: #8f93a8; border: 1px solid rgba(255,255,255,.14); padding: 1px 8px; border-radius: 99px; flex: none; }
+.d-status { margin-top: 10px; font: 12px var(--font-mono); color: #8f93a8; text-align: center; min-height: 18px; }
+.d-status b { color: #fff; font-weight: 700; }
+.picker { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 16px; position: relative; z-index: 1; }
+.pick { display: inline-flex; align-items: center; gap: 7px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 99px; padding: 5px 12px 5px 6px; font: 600 13.5px var(--font-body); cursor: pointer; }
+.pick i { width: 18px; height: 18px; border-radius: 50%; display: block; }
+.pick.on { border-color: var(--ink); }
+.try { margin-top: 10px; font-size: 14px; color: var(--muted); text-align: center; }
 .try button { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 
 /* sections */
@@ -147,6 +213,7 @@ section.block { padding-block: 72px; border-top: 1px solid var(--line); }
 .sec-head { display: flex; flex-direction: column; gap: 12px; max-width: 40em; margin-bottom: 40px; }
 .sec-head h2 { font-size: clamp(28px, 3.6vw, 40px); font-weight: 800; }
 .sec-head p { color: var(--muted); font-size: 18px; }
+.new { display: inline-block; font: 700 12px var(--font-mono); color: var(--accent-ink); background: var(--accent); border-radius: 99px; padding: 2px 10px; letter-spacing: .04em; align-self: flex-start; }
 
 .features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 36px 40px; }
 @media (max-width: 860px) { .features { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -157,27 +224,40 @@ section.block { padding-block: 72px; border-top: 1px solid var(--line); }
 .feat h3 { font-size: 20px; font-weight: 700; }
 .feat p { color: var(--muted); font-size: 16px; }
 
-.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; counter-reset: s; }
+/* themes + ChatGPT */
+.make { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 40px; align-items: start; }
+@media (max-width: 900px) { .make { grid-template-columns: minmax(0, 1fr); } }
+.flow { display: flex; flex-direction: column; gap: 18px; counter-reset: s; }
+.flow li { list-style: none; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 14px; }
+.flow ol { padding: 0; margin: 0; display: flex; flex-direction: column; gap: 20px; }
+.flow .n { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font: 700 15px var(--font-mono); background: var(--surface); border: 1px solid var(--line); color: var(--accent); }
+.flow h3 { font-size: 19px; }
+.flow p { color: var(--muted); font-size: 16px; margin-top: 4px; }
+.code { background: var(--code-bg); color: var(--code-ink); border-radius: 18px; padding: 20px 22px; font: 13.5px/1.7 var(--font-mono); direction: ltr; text-align: left; overflow-x: auto; white-space: pre; border: 1px solid var(--line); }
+.code .k { color: #9fb0ff; } .code .s { color: #8fe3b0; } .code .c { color: #6b7088; }
+.code-cap { font: 12.5px var(--font-mono); color: var(--muted); margin-top: 10px; }
+
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 @media (max-width: 860px) { .steps { grid-template-columns: minmax(0, 1fr); } }
 .step { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 26px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .step .n { font: 700 14px var(--font-mono); color: var(--accent); }
 .step h3 { font-size: 21px; }
 .step p { color: var(--muted); font-size: 16px; }
-.step .keys { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.step .keys { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; direction: ltr; }
 .step .keys .key { font-size: 13px; padding: 5px 10px 6px; }
 
 .ideas-wrap { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 32px; align-items: start; }
 @media (max-width: 760px) { .ideas-wrap { grid-template-columns: minmax(0, 1fr); } }
 .cat-list { display: flex; flex-direction: column; gap: 6px; }
 @media (max-width: 760px) { .cat-list { flex-direction: row; flex-wrap: wrap; } }
-.cat { text-align: right; background: none; border: 1.5px solid transparent; border-radius: 12px; padding: 11px 16px; font: 600 16px var(--font-body); color: var(--muted); cursor: pointer; display: flex; justify-content: space-between; gap: 12px; }
+.cat { text-align: start; background: none; border: 1.5px solid transparent; border-radius: 12px; padding: 11px 16px; font: 600 16px var(--font-body); color: var(--muted); cursor: pointer; display: flex; justify-content: space-between; gap: 12px; }
 .cat span.c { font: 13px var(--font-mono); }
 .cat:hover { color: var(--ink); }
 .cat.on { background: var(--surface); border-color: var(--line); color: var(--ink); }
 .chips { display: flex; flex-wrap: wrap; gap: 10px; }
 .chip { display: inline-flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 7px 14px 7px 8px; font-size: 15px; }
+[dir="rtl"] .chip { padding: 7px 8px 7px 14px; }
 .chip i { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; font-style: normal; font-size: 15px; }
-.chip small { color: var(--muted); font-size: 12.5px; }
 
 .faq { display: flex; flex-direction: column; max-width: 800px; }
 .faq details { border-bottom: 1px solid var(--line); padding-block: 18px; }
@@ -187,7 +267,8 @@ section.block { padding-block: 72px; border-top: 1px solid var(--line); }
 .faq details[open] summary::after { transform: rotate(45deg); }
 .faq details p { color: var(--muted); margin-top: 10px; max-width: 62ch; }
 
-.final { text-align: center; padding-block: 90px; border-top: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.final { text-align: center; padding-block: 90px; border-top: 1px solid var(--line); }
+.final .wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; }
 .final h2 { font-size: clamp(30px, 4.2vw, 48px); font-weight: 800; }
 .final p { color: var(--muted); font-size: 18px; }
 .specs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 22px; font: 13.5px var(--font-mono); color: var(--muted); margin-top: 6px; }
@@ -197,7 +278,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
 
-<div id="root" dir="rtl" lang="he"></div>
+<div id="root"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
@@ -206,27 +287,86 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 const { useState, useEffect, useRef, useMemo } = React;
 const html = htm.bind(React.createElement);
 
-// Always points at the installer of the newest GitHub release.
-const DOWNLOAD_URL = 'https://github.com/moshiach770chabad749-hue/quickdeck/releases/latest/download/QuickDeck-Setup-1.0.0.exe';
+const VERSION = '1.1.0';
+// Always points at the installer of this release.
+const DOWNLOAD_URL = 'https://github.com/moshiach770chabad749-hue/quickdeck/releases/download/v' + VERSION + '/QuickDeck-Setup-' + VERSION + '.exe';
 const REPO_URL = 'https://github.com/moshiach770chabad749-hue/quickdeck';
+const GUIDE_URL = REPO_URL + '/blob/main/THEMES.md';
 
+// Text is [English, Hebrew].
+const T = {
+  navFeatures: ['Features', 'מה יש בו'], navThemes: ['Themes', 'ערכות נושא'], navIdeas: ['Ideas', 'רעיונות'], navFaq: ['FAQ', 'שאלות'], download: ['Download', 'הורדה'],
+  eyebrow: ['WINDOWS 10 & 11 · ENGLISH + HEBREW · FREE', 'לווינדוס 10 ו-11 · אנגלית ועברית · חינם'],
+  h1a: ['A stream deck,', 'לוח סטרימינג,'], h1b: ['right on your screen.', 'ישר על המסך.'],
+  lede: ['QuickDeck pops up with one shortcut. Search any app, or hit live keys you design yourself: GIFs, videos, neon, glass, metal. It looks like hardware, and it costs nothing.',
+    'QuickDeck קופץ בצירוף מקשים אחד. מחפשים כל תוכנה, או לוחצים על כפתורים חיים שעיצבתם בעצמכם: GIF, וידאו, ניאון, זכוכית ומתכת. נראה כמו חומרה אמיתית, ועולה אפס.'],
+  say: ['and it\'s open', 'וזה פתוח'], dlWin: ['Download for Windows', 'הורדה לווינדוס'], seeThemes: ['See the themes', 'לערכות הנושא'],
+  ph: ['Try typing: spo, ex or example.com', 'נסו להקליד: spo, ex או example.com'],
+  opened: ['Opened:', 'נפתח:'], idle: ['Click a key or type to search', 'לחצו על כפתור או הקלידו לחיפוש'],
+  tryIt: ['Live demo. Pick a theme, or press', 'הדגמה חיה. בחרו ערכה, או לחצו'], onKb: ['on your keyboard.', 'על המקלדת.'],
+  tKey: ['Key', 'כפתור'], tApp: ['App', 'תוכנה'], tSite: ['Website', 'אתר'], tSearch: ['Search', 'חיפוש'], onDeck: ['Key on your deck', 'כפתור בלוח'],
+  google: ['Search "{q}" on Google', 'חפש "{q}" בגוגל'],
+  fHead: ['Less hunting in the Start menu. More doing.', 'פחות חיפוש בתפריט התחל. יותר עבודה.'],
+  fSub: ['Everything you open every day, in one place, laid out your way.', 'כל מה שאתם פותחים כל יום, במקום אחד, מסודר כמו שאתם רוצים.'],
+  mkNew: ['NEW IN 1.1', 'חדש ב-1.1'],
+  mkHead: ['Design a theme with ChatGPT. No code.', 'מעצבים ערכה עם ChatGPT. בלי קוד.'],
+  mkSub: ['A theme is one small .qdtheme text file. QuickDeck hands you a ready prompt, so any AI can write one that looks great.',
+    'ערכת נושא היא קובץ טקסט קטן אחד עם הסיומת ‎.qdtheme. QuickDeck נותן לכם פרומפט מוכן, וכל AI יכול לכתוב ערכה שנראית מעולה.'],
+  m1h: ['Copy the prompt', 'מעתיקים את הפרומפט'], m1p: ['In QuickDeck click 🎨 Themes, then Copy prompt.', 'ב-QuickDeck לוחצים 🎨 ערכות נושא ואז "העתק פרומפט".'],
+  m2h: ['Describe your look', 'מתארים את העיצוב'], m2p: ['Paste it into ChatGPT and add a line like "dark red lava, keys glowing like embers".', 'מדביקים ב-ChatGPT ומוסיפים שורה כמו "לבה אדומה כהה, כפתורים שזוהרים כמו גחלים".'],
+  m3h: ['Paste it back', 'מדביקים בחזרה'], m3p: ['Copy the answer and click Paste theme. Or save it as a .qdtheme file to share, and double-click to install.', 'מעתיקים את התשובה ולוחצים "הדבק ערכה". או שומרים כקובץ ‎.qdtheme כדי לשתף, ופותחים בלחיצה כפולה.'],
+  codeCap: ['A whole theme. Styles: lcd, glass, neon, metal, flat. Full guide on GitHub.', 'ערכה שלמה. סגנונות: lcd,‏ glass,‏ neon,‏ metal,‏ flat. המדריך המלא ב-GitHub.'],
+  guide: ['Read the theme guide', 'למדריך הערכות'],
+  sHead: ['Ready in a minute', 'מוכן תוך דקה'], sSub: ['Three steps, no complicated setup.', 'שלושה צעדים, בלי הגדרות מסובכות.'],
+  s1h: ['Install', 'מתקינים'], s1p: ['Download the installer and run it. It installs for your user only and needs no admin rights.', 'מורידים את המתקין ומריצים. ההתקנה למשתמש שלכם בלבד ולא דורשת הרשאות מנהל.'],
+  s2h: ['Open with a shortcut', 'פותחים בצירוף מקשים'], s2p: ['From anywhere, over any app. QuickDeck waits next to the clock and uses almost no resources.', 'מכל מקום, מעל כל תוכנה. QuickDeck מחכה ליד השעון ותופס כמעט אפס משאבים.'],
+  s3h: ['Build your deck', 'בונים את הלוח'], s3p: ['Edit mode, click an empty key, pick a ready idea, or drag in a file or a GIF.', 'מצב עריכה, לחיצה על ריבוע ריק, ובוחרים רעיון מוכן או גוררים קובץ או GIF.'],
+  iHead: ['59 ready-made keys, one click each', '59 כפתורים מוכנים, בלחיצה'], iSub: ['No Windows commands to learn. Pick an idea and the key fills itself in.', 'לא צריך לדעת פקודות של ווינדוס. בוחרים רעיון והכפתור ממלא את עצמו.'],
+  faqHead: ['Questions', 'שאלות נפוצות'],
+  finalH: ['Your next click will be faster.', 'הלחיצה הבאה שלכם תהיה מהירה יותר.'], finalP: ['Download, install, press Ctrl+Shift+Space.', 'מורידים, מתקינים ולוחצים Ctrl+Shift+Space.'],
+  dlBig: ['Download QuickDeck', 'הורדת QuickDeck'], version: ['Version', 'גרסה'], bits: ['Windows 10 / 11 · 64-bit', 'Windows 10 / 11 · 64 ביט'], langs: ['English + Hebrew', 'אנגלית + עברית'],
+  code: ['Code on GitHub', 'הקוד ב-GitHub'], demoLabel: ['Live demo of QuickDeck', 'הדגמה חיה של QuickDeck'], searchLabel: ['Search the demo', 'חיפוש בהדגמה']
+};
+
+const FEATURES = [
+  ['#ec4899', 'M4 5h16v14H4zM10 9l5 3-5 3z', ['Live keys', 'כפתורים חיים'], ['Put a GIF, image or video on any key. Add shine, pulse, rainbow, float or glitch effects, and hide the name for a clean look.', 'שמים GIF, תמונה או וידאו על כל כפתור. מוסיפים אפקט ברק, פעימה, קשת, ריחוף או גליץ\', ומסתירים את השם למראה נקי.']],
+  ['#7c5cff', 'M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.8 1.6-1.6 0-1-.9-1.4-.9-2.4 0-.9.7-1.6 1.6-1.6H16a5 5 0 0 0 5-5c0-4.1-4-7.4-9-7.4z', ['7 themes, or your own', '7 ערכות, או שלכם'], ['Classic, Cyber Neon, Aurora, Galaxy, Synthwave, Black & Gold and Ocean. Or set any image, GIF or video as the background.', 'קלאסי, ניאון סייבר, זוהר צפוני, גלקסיה, סינת\'ווייב, שחור-זהב ואוקיינוס. או כל תמונה, GIF או וידאו כרקע.']],
+  ['#3b82f6', 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4', ['Instant search', 'חיפוש מיידי'], ['Type two or three letters to find any installed app, any key you made or any website. Enter, and it\'s open.', 'מקלידים שתיים-שלוש אותיות ומקבלים כל תוכנה מותקנת, כל כפתור וכל אתר. Enter, וזה פתוח.']],
+  ['#10b981', 'M4 6h16M4 12h10M4 18h7', ['Pages by topic', 'דפים לפי נושא'], ['A page for work, home and games. Switch with Ctrl + number, and drag keys between pages.', 'דף לעבודה, לבית ולמשחקים. מעבר עם Ctrl ומספר, והעברת כפתורים בין דפים בגרירה.']],
+  ['#a855f7', 'M12 3v12M7 10l5 5 5-5M5 21h14', ['Drag and drop', 'גוררים ומשחררים'], ['Drop a file, folder or app on an empty key and it\'s ready. Drop a GIF on a key and it comes alive.', 'גוררים קובץ, תיקייה או תוכנה לריבוע ריק והכפתור מוכן. גוררים GIF על כפתור והוא מתעורר לחיים.']],
+  ['#f5a524', 'M3 5h8M7 3v2M5 5c0 4 3 7 6 8M9 5c0 3-3 6-6 7M13 21l4-10 4 10M14.5 17h5', ['English or Hebrew', 'אנגלית או עברית'], ['English out of the box. One click in Settings switches everything to Hebrew, right-to-left included.', 'באנגלית כברירת מחדל. לחיצה אחת בהגדרות מעבירה הכול לעברית, כולל כיוון מימין לשמאל.']]
+];
+
+// demo themes, mirroring the built-in .qdtheme files
+const THEMES = [
+  { id: 'classic', n: ['Classic', 'קלאסי'], dot: '#7c5cff', style: 's-lcd', fx: '', e: '', v: {} },
+  { id: 'neon', n: ['Cyber Neon', 'ניאון'], dot: '#ff2bd6', style: 's-neon', fx: '', e: 'e-scan', v: { '--dbody': 'linear-gradient(180deg,#140a22,#07040d)', '--dborder': 'rgba(255,43,214,.45)', '--dglow': '#ff2bd6', '--dbezel': 'rgba(0,0,0,.55)', '--dbg': 'radial-gradient(80% 60% at 50% 120%, rgba(255,43,214,.35), transparent 70%), radial-gradient(60% 50% at 0% 0%, rgba(0,229,255,.18), transparent 70%), #07040d', '--lbl': '#ffe9fb' } },
+  { id: 'aurora', n: ['Aurora', 'זוהר צפוני'], dot: '#34f5c5', style: 's-glass', fx: 'f-shine', e: 'e-aurora', v: { '--dbody': 'rgba(8,18,28,.95)', '--dborder': 'rgba(52,245,197,.25)', '--dglow': '#34f5c5', '--dbezel': 'rgba(0,0,0,.18)', '--dbg': 'linear-gradient(160deg,#04121c,#0a1f2e 50%,#120a24)' } },
+  { id: 'galaxy', n: ['Galaxy', 'גלקסיה'], dot: '#5b6bff', style: 's-glass', fx: '', e: 'e-stars', v: { '--dbody': 'linear-gradient(180deg,#1d1b2b,#0b0a14)', '--dborder': 'rgba(139,123,255,.3)', '--dglow': '#5b6bff', '--dbezel': 'rgba(0,0,0,.25)', '--dbg': 'radial-gradient(45% 50% at 30% 40%, rgba(255,79,216,.55), transparent), radial-gradient(50% 55% at 70% 60%, rgba(59,107,255,.7), transparent), radial-gradient(28% 30% at 55% 28%, rgba(255,211,107,.35), transparent), #05040f' } },
+  { id: 'synth', n: ['Synthwave', 'סינת\'ווייב'], dot: '#ff4f9a', style: 's-glass', fx: 'f-float', e: 'e-grid', v: { '--dbody': 'linear-gradient(180deg,#2a0b3d,#12041f)', '--dborder': 'rgba(255,79,154,.4)', '--dglow': '#ff4f9a', '--dbezel': 'rgba(10,0,25,.3)', '--dbg': 'linear-gradient(#120428, #5b0f6b 55%, #ff5d8f)' } },
+  { id: 'gold', n: ['Black & Gold', 'שחור-זהב'], dot: '#e8c372', style: 's-metal', fx: 'f-shine', e: '', v: { '--dbody': 'linear-gradient(180deg,#1f1b15,#0c0b09)', '--dborder': 'rgba(232,195,114,.35)', '--dglow': '#e8c372', '--dbg': 'radial-gradient(90% 70% at 50% 0%, rgba(232,195,114,.16), transparent 60%), #0b0a08', '--lbl': '#f3d58e', '--kborder': 'rgba(232,195,114,.55)' } },
+  { id: 'ocean', n: ['Ocean', 'אוקיינוס'], dot: '#38bdf8', style: 's-glass', fx: 'f-breathe', e: 'e-bubbles', v: { '--dbody': 'rgba(2,30,50,.95)', '--dborder': 'rgba(56,189,248,.3)', '--dglow': '#38bdf8', '--dbezel': 'rgba(0,10,20,.2)', '--dbg': 'radial-gradient(70% 50% at 50% 0%, rgba(125,211,252,.35), transparent 70%), linear-gradient(180deg,#034063,#022a44 50%,#011526)' } }
+];
+
+// [label, glyph, color, live?]
 const TILES = {
-  'ראשי': [
-    ['סייר קבצים', '📁', '#f5a524'], ['שולחן עבודה', '🖥️', '#3b82f6'], ['הורדות', '⬇️', '#10b981'], ['מסמכים', '📄', '#6366f1'], ['מחשבון', '🧮', '#64748b'],
-    ['Google', '🔍', '#ea4335'], ['YouTube', '▶️', '#ff0033'], ['WhatsApp', '💬', '#25d366'], ['צילום מסך', '✂️', '#ec4899'], ['הגדרות', '⚙️', '#475569'],
-    ['נעילה', '🔒', '#ef4444'], ['מנהל משימות', '📊', '#0ea5e9'], ['פנקס', '📝', '#a855f7'], ['סל מחזור', '🗑️', '#78716c'], null
+  main: [
+    [['Explorer', 'סייר'], '📁', '#f5a524'], [['Desktop', 'שולחן עבודה'], '🖥️', '#3b82f6'], [['Stream', 'שידור'], '🎥', '#ff2e88', 'wave'], [['Music', 'מוזיקה'], '', '#1db954', 'eq'], [['Calculator', 'מחשבון'], '🧮', '#64748b'],
+    [['Google', 'Google'], '🔍', '#ea4335'], [['YouTube', 'YouTube'], '▶️', '#ff0033'], [['WhatsApp', 'WhatsApp'], '💬', '#25d366'], [['Record', 'הקלטה'], '🔴', '#ef4444', 'rec'], [['Settings', 'הגדרות'], '⚙️', '#475569'],
+    [['Lock', 'נעילה'], '🔒', '#ef4444'], [['Discord', 'Discord'], '🎙️', '#5865f2', 'ring'], [['Notepad', 'פנקס'], '📝', '#a855f7'], [['Recycle Bin', 'סל מחזור'], '🗑️', '#78716c'], null
   ],
-  'עבודה': [
-    ['Gmail', '📧', '#ea4335'], ['Drive', '☁️', '#f5a524'], ['Teams', '👥', '#6264a7'], ['Excel', '📊', '#107c41'], ['Word', '📘', '#185abd'],
-    ['Zoom', '🎥', '#2d8cff'], ['תרגום', '🌍', '#3b82f6'], ['Claude', '✳️', '#d97757'], ['VS Code', '💻', '#0e7acb'], null,
-    ['כיבוי בעוד שעה', '⏲️', '#a855f7'], ['Wi-Fi', '📶', '#0ea5e9'], null, null, null
+  work: [
+    [['Gmail', 'Gmail'], '📧', '#ea4335'], [['Drive', 'Drive'], '☁️', '#f5a524'], [['Teams', 'Teams'], '👥', '#6264a7'], [['Excel', 'Excel'], '📊', '#107c41'], [['Word', 'Word'], '📘', '#185abd'],
+    [['Zoom', 'Zoom'], '🎥', '#2d8cff'], [['Translate', 'תרגום'], '🌍', '#3b82f6'], [['Claude', 'Claude'], '✳️', '#d97757'], [['VS Code', 'VS Code'], '💻', '#0e7acb'], null,
+    [['Off in 1h', 'כיבוי בעוד שעה'], '⏲️', '#a855f7'], [['Wi-Fi', 'Wi-Fi'], '📶', '#0ea5e9'], null, null, null
   ],
-  'בית': [
-    ['Netflix', '🎬', '#b20710'], ['Spotify', '🎧', '#1db954'], ['KSP', '🖥️', '#ef4444'], ['Wolt', '🍔', '#00c2e8'], ['ynet', '📰', '#ef4444'],
-    ['Waze', '🚗', '#0ea5e9'], ['Steam', '🎮', '#1b2838'], ['מזג אוויר', '⛅', '#0ea5e9'], ['שינה', '🌙', '#6366f1'], ['כיבוי', '⏻', '#ef4444'],
+  games: [
+    [['Steam', 'Steam'], '🎮', '#1b2838', 'ring'], [['Twitch', 'Twitch'], '🟣', '#9146ff', 'wave'], [['Spotify', 'Spotify'], '', '#1db954', 'eq'], [['Netflix', 'Netflix'], '🎬', '#b20710'], [['Epic', 'Epic'], '🕹️', '#2a2a2a'],
+    [['OBS', 'OBS'], '🔴', '#ef4444', 'rec'], [['Mic mute', 'השתקה'], '🎤', '#f97316'], [['Sleep', 'שינה'], '🌙', '#6366f1'], [['Shut down', 'כיבוי'], '⏻', '#ef4444'], null,
     null, null, null, null, null
   ]
 };
+const PAGES = { main: ['Main', 'ראשי'], work: ['Work', 'עבודה'], games: ['Games', 'משחקים'] };
 
 const APPS = [
   ['Visual Studio Code', '💻', '#0e7acb', 'C:\\Users\\...\\Code.exe'], ['Google Chrome', '🌐', '#4285f4', 'C:\\Program Files\\Google\\Chrome'],
@@ -234,17 +374,55 @@ const APPS = [
   ['Excel', '📊', '#107c41', 'C:\\Program Files\\Microsoft Office'], ['PowerPoint', '📙', '#c43e1c', 'C:\\Program Files\\Microsoft Office'],
   ['Steam', '🎮', '#1b2838', 'C:\\Program Files (x86)\\Steam'], ['Discord', '🎙️', '#5865f2', 'C:\\Users\\...\\Discord.exe'],
   ['Blender', '🧊', '#ea7600', 'C:\\Program Files\\Blender'], ['Paint', '🎨', '#ec4899', 'mspaint.exe'],
-  ['פנקס רשימות', '📝', '#a855f7', 'notepad.exe'], ['מחשבון', '🧮', '#64748b', 'calc.exe'],
-  ['Microsoft Edge', '🌊', '#0c8fd6', 'C:\\Program Files (x86)\\Microsoft\\Edge'], ['WhatsApp', '💬', '#25d366', 'web.whatsapp.com'],
+  ['Notepad', '📝', '#a855f7', 'notepad.exe'], ['Calculator', '🧮', '#64748b', 'calc.exe'],
+  ['Microsoft Edge', '🌊', '#0c8fd6', 'C:\\Program Files (x86)\\Microsoft\\Edge'], ['OBS Studio', '🔴', '#302e31', 'C:\\Program Files\\obs-studio'],
   ['Epic Games Launcher', '🕹️', '#2a2a2a', 'C:\\Program Files\\Epic Games'], ['Zoom', '🎥', '#2d8cff', 'C:\\Users\\...\\Zoom.exe']
 ];
 
 const IDEAS = [
-  { cat: 'אתרים', items: [['KSP', '🖥️', '#ef4444'], ['זאפ', '🛒', '#3b82f6'], ['Ivory', '💻', '#6366f1'], ['ynet', '📰', '#ef4444'], ['כאן 11', '📺', '#0ea5e9'], ['Waze', '🚗', '#0ea5e9'], ['מפות', '🗺️', '#22c55e'], ['Gmail', '📧', '#ea4335'], ['Drive', '☁️', '#f5a524'], ['תרגום', '🌍', '#3b82f6'], ['Claude', '✳️', '#d97757'], ['WhatsApp', '💬', '#25d366'], ['YouTube', '▶️', '#ff0033'], ['Spotify', '🎧', '#1db954'], ['Netflix', '🎬', '#b20710'], ['Wolt', '🍔', '#00c2e8'], ['AliExpress', '📦', '#f97316'], ['מזג אוויר', '⛅', '#0ea5e9'], ['gov.il', '🏛️', '#1e40af']] },
-  { cat: 'פקודות מחשב', items: [['כיבוי', '⏻', '#ef4444'], ['הפעלה מחדש', '🔄', '#f97316'], ['כיבוי בעוד שעה', '⏲️', '#a855f7'], ['ביטול כיבוי', '✋', '#64748b'], ['שינה', '🌙', '#6366f1'], ['נעילה', '🔒', '#ef4444'], ['כיבוי מסך', '🖥️', '#1f2937'], ['ריקון סל מחזור', '🗑️', '#78716c'], ['ניקוי דיסק', '🧹', '#10b981'], ['מנהל התקנים', '🔌', '#475569'], ['ניהול דיסקים', '💽', '#475569'], ['לוח הבקרה', '🎛️', '#3b82f6'], ['שורת פקודה', '⌨️', '#1f2937'], ['PowerShell', '🟦', '#1e40af'], ['תיקיית הפעלה', '🚀', '#f5a524'], ['תיקיית Temp', '🧺', '#78716c']] },
-  { cat: 'הגדרות ווינדוס', items: [['Wi-Fi', '📶', '#0ea5e9'], ['Bluetooth', '🔵', '#3b82f6'], ['צג', '🖥️', '#6366f1'], ['שמע', '🔊', '#a855f7'], ['עדכונים', '⬆️', '#10b981'], ['אפליקציות', '🧩', '#64748b'], ['אחסון', '💾', '#f5a524'], ['מדפסות', '🖨️', '#475569'], ['רקע', '🖼️', '#ec4899'], ['סוללה', '🔋', '#22c55e'], ['מצלמה', '📷', '#1f2937'], ['צילום מסך', '✂️', '#ec4899']] },
-  { cat: 'אנשים', items: [['וואטסאפ לאיש קשר', '💬', '#25d366'], ['מייל לאיש קשר', '📧', '#ea4335'], ['מייל עם נושא מוכן', '✉️', '#f97316'], ['שיחה', '📞', '#10b981'], ['Teams', '👥', '#6264a7'], ['פגישת זום קבועה', '🎥', '#2d8cff'], ['Google Meet', '📹', '#00897b'], ['פרופיל פייסבוק', '👤', '#1877f2'], ['פרופיל אינסטגרם', '📸', '#e1306c']] }
+  { cat: ['Websites', 'אתרים'], items: [['Google', '🔍', '#ea4335'], ['Gmail', '📧', '#ea4335'], ['Drive', '☁️', '#f5a524'], [['Maps', 'מפות'], '🗺️', '#22c55e'], [['Translate', 'תרגום'], '🌍', '#3b82f6'], ['Claude', '✳️', '#d97757'], ['ChatGPT', '🤖', '#10a37f'], ['WhatsApp', '💬', '#25d366'], ['YouTube', '▶️', '#ff0033'], ['Twitch', '🟣', '#9146ff'], ['Spotify', '🎧', '#1db954'], ['Netflix', '🎬', '#b20710'], ['Reddit', '👽', '#ff4500'], ['X', '✖️', '#1f2937'], ['Amazon', '📦', '#f59e0b'], ['AliExpress', '🛍️', '#f97316'], ['GitHub', '🐙', '#24292f'], [['Weather', 'מזג אוויר'], '⛅', '#0ea5e9'], ['KSP', '🖥️', '#ef4444'], [['Zap', 'זאפ'], '🛒', '#3b82f6'], ['ynet', '📰', '#ef4444'], ['Waze', '🚗', '#0ea5e9']] },
+  { cat: ['PC commands', 'פקודות מחשב'], items: [[['Shut down', 'כיבוי'], '⏻', '#ef4444'], [['Restart', 'הפעלה מחדש'], '🔄', '#f97316'], [['Off in 1 hour', 'כיבוי בעוד שעה'], '⏲️', '#a855f7'], [['Cancel shutdown', 'ביטול כיבוי'], '✋', '#64748b'], [['Sleep', 'שינה'], '🌙', '#6366f1'], [['Lock', 'נעילה'], '🔒', '#ef4444'], [['Screen off', 'כיבוי מסך'], '🖥️', '#1f2937'], [['Empty Recycle Bin', 'ריקון סל מחזור'], '🗑️', '#78716c'], [['Disk Cleanup', 'ניקוי דיסק'], '🧹', '#10b981'], [['Device Manager', 'מנהל התקנים'], '🔌', '#475569'], [['Disk Management', 'ניהול דיסקים'], '💽', '#475569'], [['Control Panel', 'לוח הבקרה'], '🎛️', '#3b82f6'], [['Command Prompt', 'שורת פקודה'], '⌨️', '#1f2937'], ['PowerShell', '🟦', '#1e40af'], [['Startup folder', 'תיקיית הפעלה'], '🚀', '#f5a524'], [['Temp folder', 'תיקיית Temp'], '🧺', '#78716c']] },
+  { cat: ['Windows settings', 'הגדרות ווינדוס'], items: [['Wi-Fi', '📶', '#0ea5e9'], ['Bluetooth', '🔵', '#3b82f6'], [['Display', 'צג'], '🖥️', '#6366f1'], [['Sound', 'שמע'], '🔊', '#a855f7'], [['Updates', 'עדכונים'], '⬆️', '#10b981'], [['Apps', 'אפליקציות'], '🧩', '#64748b'], [['Storage', 'אחסון'], '💾', '#f5a524'], [['Printers', 'מדפסות'], '🖨️', '#475569'], [['Wallpaper', 'רקע'], '🖼️', '#ec4899'], [['Battery', 'סוללה'], '🔋', '#22c55e'], [['Camera', 'מצלמה'], '📷', '#1f2937'], [['Screenshot', 'צילום מסך'], '✂️', '#ec4899']] },
+  { cat: ['People', 'אנשים'], items: [[['WhatsApp a contact', 'וואטסאפ לאיש קשר'], '💬', '#25d366'], [['Email a contact', 'מייל לאיש קשר'], '📧', '#ea4335'], [['Email with subject', 'מייל עם נושא'], '✉️', '#f97316'], [['Call', 'שיחה'], '📞', '#10b981'], ['Teams', '👥', '#6264a7'], [['Your Zoom room', 'פגישת זום קבועה'], '🎥', '#2d8cff'], ['Google Meet', '📹', '#00897b'], [['Facebook profile', 'פרופיל פייסבוק'], '👤', '#1877f2'], [['Instagram profile', 'פרופיל אינסטגרם'], '📸', '#e1306c']] }
 ];
+
+const FAQ = [
+  [['Windows shows a blue warning when installing. Is it safe?', 'ווינדוס מציג אזהרה כחולה בהתקנה. זה בטוח?'], ['That SmartScreen warning appears for any new app without a paid digital signature. Click "More info", then "Run anyway". QuickDeck collects nothing and sends nothing to the internet.', 'האזהרה (SmartScreen) מופיעה לכל תוכנה חדשה שאין לה חתימה דיגיטלית בתשלום. לוחצים "מידע נוסף" ואז "הפעל בכל זאת". QuickDeck לא אוסף מידע ולא שולח שום דבר לאינטרנט.']],
+  [['How do I make my own theme?', 'איך יוצרים ערכה משלי?'], ['Open 🎨 Themes, click Copy prompt, paste it into ChatGPT and describe the look. Copy the answer back and click Paste theme. The theme guide on GitHub lists every option.', 'פותחים 🎨 ערכות נושא, לוחצים "העתק פרומפט", מדביקים ב-ChatGPT ומתארים את העיצוב. מעתיקים את התשובה ולוחצים "הדבק ערכה". במדריך ב-GitHub מפורטת כל אפשרות.']],
+  [['Do GIFs and videos slow my PC down?', 'GIF ווידאו מאטים את המחשב?'], ['No. Videos pause as soon as the deck is hidden, so they only play while you are looking at it.', 'לא. הסרטונים נעצרים ברגע שהלוח נסגר, כך שהם רצים רק כשאתם מסתכלים עליו.']],
+  [['Ctrl+Shift+Space is taken on my PC. Can I change it?', 'הצירוף Ctrl+Shift+Space תפוס אצלי. אפשר לשנות?'], ['Yes. In Settings, click the shortcut field and press any combination. If another app already uses it, QuickDeck tells you.', 'כן. בהגדרות לוחצים על שדה הקיצור ומקישים כל צירוף. אם תוכנה אחרת כבר משתמשת בו, QuickDeck מודיע על זה.']],
+  [['Will I keep my keys when I update?', 'הכפתורים שלי נשמרים אם אעדכן גרסה?'], ['Yes. Keys, pages, themes and settings are saved in your user profile and survive updates and reinstalls.', 'כן. הכפתורים, הדפים, הערכות וההגדרות נשמרים בפרופיל המשתמש שלכם ונשארים גם אחרי עדכון או התקנה מחדש.']],
+  [['How do I uninstall it?', 'איך מסירים את התוכנה?'], ['Settings → Apps → QuickDeck → Uninstall, like any other app.', 'הגדרות ← אפליקציות ← QuickDeck ← הסרה, כמו כל תוכנה אחרת.']]
+];
+
+const CODE = `{
+  "name": "Lava",
+  "accent": "#ff6a00",
+  "device": { "glow": "#ff6a00" },
+  "background": {
+    "value": "radial-gradient(#ff3d00, #1a0500)",
+    "effect": "fireflies"
+  },
+  "keys": {
+    "style": "neon",
+    "effect": "pulse",
+    "press": "ripple"
+  }
+}`;
+// tiny JSON highlighter: keys and string values get their own color
+function codeNodes() {
+  const out = []; const re = /"[^"]*"(\s*:)?/g; let last = 0, m, i = 0;
+  while ((m = re.exec(CODE))) {
+    out.push(CODE.slice(last, m.index));
+    const isKey = !!m[1];
+    const word = isKey ? m[0].slice(0, m[0].length - m[1].length) : m[0];
+    out.push(html`<span key=${i++} class=${isKey ? 'k' : 's'}>${word}</span>`);
+    if (isKey) out.push(m[1]);
+    last = re.lastIndex;
+  }
+  out.push(CODE.slice(last));
+  return out;
+}
 
 function score(name, q) {
   const n = name.toLowerCase(); q = q.toLowerCase();
@@ -262,25 +440,37 @@ function Hl({ text, q }) {
   return html`${text.slice(0, i)}<mark>${text.slice(i, i + q.length)}</mark>${text.slice(i + q.length)}`;
 }
 
-function Demo({ open, inputRef }) {
-  const [page, setPage] = useState('ראשי');
+function Key({ t, i, hit, onPress, L }) {
+  if (!t) return html`<div class="tile empty" aria-hidden="true"><span class="scr"></span></div>`;
+  const [label, glyph, color, live] = t;
+  return html`<button class=${'tile' + (live ? ' live-' + live : '') + (hit ? ' hit' : '')} style=${{ '--c': color, '--d': (-(i * .37) % 4).toFixed(2) + 's' }} onClick=${onPress}>
+    <span class="scr">
+      ${live === 'eq' ? html`<span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>` : html`<span class="g">${glyph}</span>`}
+      <span class="l">${L(label)}</span>
+    </span>
+  </button>`;
+}
+
+function Demo({ open, inputRef, L, themeId }) {
+  const [page, setPage] = useState('main');
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
   const [hit, setHit] = useState(-1);
   const [status, setStatus] = useState(null);
+  const th = THEMES.find(x => x.id === themeId) || THEMES[0];
 
   const results = useMemo(() => {
-    const t = q.trim(); if (!t) return [];
+    const s = q.trim(); if (!s) return [];
     const out = [];
-    if (isDomain(t)) out.push({ name: t, sub: 'https://' + t.replace(/^https?:\/\//, ''), g: '🌐', c: '#3b82f6', tag: 'אתר' });
-    const tiles = Object.values(TILES).flat().filter(Boolean).map(x => ({ name: x[0], g: x[1], c: x[2], sub: 'כפתור בלוח', tag: 'כפתור', s: score(x[0], t) })).filter(x => x.s);
-    const apps = APPS.map(a => ({ name: a[0], g: a[1], c: a[2], sub: a[3], tag: 'תוכנה', s: score(a[0], t) })).filter(x => x.s);
+    if (isDomain(s)) out.push({ name: s, sub: 'https://' + s.replace(/^https?:\/\//, ''), g: '🌐', c: '#3b82f6', tag: L(T.tSite) });
+    const tiles = Object.values(TILES).flat().filter(Boolean).map(x => ({ name: L(x[0]), g: x[1] || '🎧', c: x[2], sub: L(T.onDeck), tag: L(T.tKey), s: score(L(x[0]), s) })).filter(x => x.s);
+    const apps = APPS.map(a => ({ name: a[0], g: a[1], c: a[2], sub: a[3], tag: L(T.tApp), s: score(a[0], s) })).filter(x => x.s);
     const seen = new Set();
     [...tiles, ...apps].sort((a, b) => b.s - a.s).forEach(r => { if (!seen.has(r.name)) { seen.add(r.name); out.push(r); } });
     out.splice(6);
-    out.push({ name: `חפש "${t}" בגוגל`, sub: 'google.com', g: '🔍', c: '#475569', tag: 'חיפוש' });
+    out.push({ name: L(T.google).replace('{q}', s), sub: 'google.com', g: '🔍', c: '#475569', tag: L(T.tSearch) });
     return out;
-  }, [q]);
+  }, [q, L]);
 
   useEffect(() => setSel(0), [q]);
 
@@ -288,7 +478,7 @@ function Demo({ open, inputRef }) {
     setStatus(name);
     clearTimeout(launch.t); launch.t = setTimeout(() => setStatus(null), 1800);
   };
-  const press = (i, t) => { if (!t) return; setHit(i); setTimeout(() => setHit(-1), 180); launch(t[0]); };
+  const press = (i, t) => { setHit(i); setTimeout(() => setHit(-1), 180); launch(L(t[0])); };
 
   const onKey = (e) => {
     if (!q) return;
@@ -299,20 +489,22 @@ function Demo({ open, inputRef }) {
   };
 
   return html`
-    <div class=${'demo' + (open ? '' : ' closed')} role="region" aria-label="הדגמה חיה של QuickDeck">
+    <div class=${['demo', th.style, th.fx, th.e, open ? '' : 'closed'].filter(Boolean).join(' ')} style=${th.v} role="region" aria-label=${L(T.demoLabel)}>
+      <div class="dbg" aria-hidden="true"></div>
+      <div class="leds" aria-hidden="true"><i></i><i></i><i></i></div>
       <div class="d-top">
         <label class="d-search">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
           <input id="demo-q" ref=${inputRef} value=${q} onInput=${e => setQ(e.target.value)} onKeyDown=${onKey}
-            placeholder="נסו להקליד: spo, ex או ksp.co.il" autocomplete="off" spellcheck="false" aria-label="חיפוש בהדגמה" />
+            placeholder=${L(T.ph)} autocomplete="off" spellcheck="false" aria-label=${L(T.searchLabel)} />
           <kbd>Ctrl+Shift+Space</kbd>
         </label>
-        <div class="d-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></div>
+        <div class="d-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.8 1.6-1.6 0-1-.9-1.4-.9-2.4 0-.9.7-1.6 1.6-1.6H16a5 5 0 0 0 5-5c0-4.1-4-7.4-9-7.4z"/></svg></div>
       </div>
       ${q.trim() ? html`
-        <div class="d-results" style=${{ marginTop: '12px' }}>
+        <div class="d-results">
           ${results.map((r, i) => html`
-            <div key=${r.name + i} class=${'d-res' + (i === sel ? ' sel' : '')} onMouseEnter=${() => setSel(i)} onClick=${() => { launch(r.name); setQ(''); }} style=${{ cursor: 'pointer' }}>
+            <div key=${r.name + i} class=${'d-res' + (i === sel ? ' sel' : '')} onMouseEnter=${() => setSel(i)} onClick=${() => { launch(r.name); setQ(''); }}>
               <span class="ri" style=${{ background: r.c }}>${r.g}</span>
               <span class="rt"><div class="rn"><${Hl} text=${r.name} q=${q.trim()} /></div><div class="rs">${r.sub}</div></span>
               <span class="tag">${r.tag}</span>
@@ -320,46 +512,48 @@ function Demo({ open, inputRef }) {
         </div>` : html`
         <div>
           <div class="d-tabs" role="tablist">
-            ${Object.keys(TILES).map(p => html`<button key=${p} role="tab" aria-selected=${p === page} class=${'d-tab' + (p === page ? ' on' : '')} onClick=${() => setPage(p)}>${p}</button>`)}
+            ${Object.keys(TILES).map(p => html`<button key=${p} role="tab" aria-selected=${p === page} class=${'d-tab' + (p === page ? ' on' : '')} onClick=${() => setPage(p)}>${L(PAGES[p])}</button>`)}
           </div>
           <div class="d-grid">
-            ${TILES[page].map((t, i) => t
-              ? html`<button key=${page + i} class=${'tile' + (hit === i ? ' hit' : '')} style=${{ '--c': t[2] }} onClick=${() => press(i, t)}><span class="g">${t[1]}</span><span class="l">${t[0]}</span></button>`
-              : html`<div key=${page + i} class="tile empty" aria-hidden="true"></div>`)}
+            ${TILES[page].map((t, i) => html`<${Key} key=${page + i} t=${t} i=${i} hit=${hit === i} L=${L} onPress=${() => press(i, t)} />`)}
           </div>
         </div>`}
-      <div class="d-status" aria-live="polite">${status ? html`נפתח: <b>${status}</b>` : 'לחצו על כפתור או הקלידו לחיפוש'}</div>
+      <div class="d-status" aria-live="polite">${status ? html`${L(T.opened)} <b>${status}</b>` : L(T.idle)}</div>
     </div>`;
 }
 
-const FEATURES = [
-  ['#3b82f6', 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4', 'חיפוש מיידי', 'מקלידים שתיים־שלוש אותיות ומקבלים כל תוכנה שמותקנת במחשב, כל כפתור שיצרתם וכל אתר. Enter ופתוח.'],
-  ['#f5a524', 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z', 'לוח כפתורים משלכם', 'עד 8 על 6 כפתורים בכל דף. בוחרים שם, צבע, אימוג\'י או את האייקון המקורי של התוכנה.'],
-  ['#10b981', 'M4 6h16M4 12h10M4 18h7', 'דפים לפי נושא', 'דף לעבודה, דף לבית, דף למשחקים. מעבר עם Ctrl ומספר, והעברת כפתורים בין דפים בגרירה.'],
-  ['#ec4899', 'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6', '56 רעיונות מוכנים', 'אתרים ישראליים, פקודות כיבוי ושינה, הגדרות Wi-Fi ו-Bluetooth, וקיצורים לאנשים: וואטסאפ, מייל וזום.'],
-  ['#a855f7', 'M12 3v12M7 10l5 5 5-5M5 21h14', 'גוררים ומשחררים', 'גוררים קובץ, תיקייה או תוכנה מהסייר לריבוע ריק, והכפתור מוכן. בלי להעתיק נתיבים.'],
-  ['#ef4444', 'M3 12h4l3-8 4 16 3-8h4', 'כתובת בלי https', 'כותבים ksp.co.il וזה נפתח. QuickDeck מזהה כתובת אתר לבד, גם בחיפוש וגם בכפתורים.']
-];
+function readLang() {
+  try { const u = new URLSearchParams(location.search).get('lang'); if (u === 'he' || u === 'en') return u; } catch (e) {}
+  try { const s = localStorage.getItem('qd-lang'); if (s === 'he' || s === 'en') return s; } catch (e) {}
+  return 'en';
+}
 
 function App() {
+  const [lang, setLang] = useState(readLang);
   const [open, setOpen] = useState(true);
   const [down, setDown] = useState(false);
   const [cat, setCat] = useState(0);
+  const [themeId, setThemeId] = useState('classic');
   const inputRef = useRef(null);
+  const L = useMemo(() => (v) => (Array.isArray(v) ? (lang === 'he' ? v[1] : v[0]) : v), [lang]);
+
+  useEffect(() => {
+    const r = document.getElementById('root');
+    r.dir = lang === 'he' ? 'rtl' : 'ltr'; r.lang = lang;
+    document.documentElement.lang = lang;
+    try { localStorage.setItem('qd-lang', lang); } catch (e) {}
+  }, [lang]);
 
   const toggle = () => {
     setDown(true); setTimeout(() => setDown(false), 160);
     setOpen(o => { const n = !o; if (n) setTimeout(() => inputRef.current && inputRef.current.focus(), 60); return n; });
   };
-
   useEffect(() => {
-    const h = (e) => { if (e.ctrlKey && e.shiftKey && (e.code === 'Space')) { e.preventDefault(); toggle(); } };
+    const h = (e) => { if (e.ctrlKey && e.shiftKey && e.code === 'Space') { e.preventDefault(); toggle(); } };
     window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h);
   }, []);
 
-  const dl = DOWNLOAD_URL
-    ? html`<a class="btn btn-primary" href=${DOWNLOAD_URL} target="_blank" rel="noopener">הורדה לווינדוס</a>`
-    : html`<a class="btn btn-primary" href="#download">הורדה לווינדוס</a>`;
+  const th = THEMES.find(x => x.id === themeId);
 
   return html`
     <div class="wrap">
@@ -369,31 +563,39 @@ function App() {
           QuickDeck
         </a>
         <span class="spacer"></span>
-        <a class="link" href="#features">מה יש בו</a>
-        <a class="link" href="#ideas">רעיונות</a>
-        <a class="link" href="#faq">שאלות</a>
-        <a class="btn btn-primary btn-sm" href="#download">הורדה</a>
+        <a class="link" href="#features">${L(T.navFeatures)}</a>
+        <a class="link" href="#themes">${L(T.navThemes)}</a>
+        <a class="link" href="#ideas">${L(T.navIdeas)}</a>
+        <a class="link" href="#faq">${L(T.navFaq)}</a>
+        <span class="lang" role="group" aria-label="Language">
+          <button class=${lang === 'en' ? 'on' : ''} onClick=${() => setLang('en')} lang="en">EN</button>
+          <button class=${lang === 'he' ? 'on' : ''} onClick=${() => setLang('he')} lang="he">עב</button>
+        </span>
+        <a class="btn btn-primary btn-sm" href="#download">${L(T.download)}</a>
       </nav>
 
       <header class="hero" id="top">
         <div>
-          <div class="eyebrow"><b>●</b> לווינדוס 10 ו-11 · בעברית מלאה</div>
-          <h1>כל המחשב שלך, <em>במרחק לחיצה אחת.</em></h1>
-          <p class="lede">QuickDeck הוא חלון קטן שקופץ בצירוף מקשים אחד. מחפשים בו כל תוכנה, או לוחצים על לוח כפתורים צבעוני שבניתם בעצמכם, כמו לוח של סטרימרים.</p>
-          <div class="combo" aria-label="צירוף המקשים לפתיחה">
+          <div class="eyebrow"><b>●</b> ${L(T.eyebrow)}</div>
+          <h1>${L(T.h1a)} <em>${L(T.h1b)}</em></h1>
+          <p class="lede">${L(T.lede)}</p>
+          <div class="combo">
             <span class=${'key' + (down ? ' down' : '')}>Ctrl</span><span class="plus">+</span>
             <span class=${'key' + (down ? ' down' : '')}>Shift</span><span class="plus">+</span>
             <span class=${'key' + (down ? ' down' : '')}>Space</span>
-            <span class="say">וזה פתוח</span>
+            <span class="say">${L(T.say)}</span>
           </div>
           <div class="ctas">
-            ${dl}
-            <a class="btn btn-ghost" href="#features">מה הוא יודע</a>
+            <a class="btn btn-primary" href=${DOWNLOAD_URL}>${L(T.dlWin)}</a>
+            <a class="btn btn-ghost" href="#themes">${L(T.seeThemes)}</a>
           </div>
         </div>
-        <div class="demo-shell">
-          <${Demo} open=${open} inputRef=${inputRef} />
-          <p class="try">זו הדגמה חיה. נסו ללחוץ <button onClick=${toggle}>Ctrl+Shift+Space</button> על המקלדת.</p>
+        <div class="demo-shell" style=${{ '--dglow': th.dot }}>
+          <${Demo} open=${open} inputRef=${inputRef} L=${L} themeId=${themeId} />
+          <div class="picker" role="radiogroup" aria-label=${L(T.navThemes)}>
+            ${THEMES.map(x => html`<button key=${x.id} role="radio" aria-checked=${x.id === themeId} class=${'pick' + (x.id === themeId ? ' on' : '')} onClick=${() => setThemeId(x.id)}><i style=${{ background: x.dot, boxShadow: '0 0 8px ' + x.dot }}></i>${L(x.n)}</button>`)}
+          </div>
+          <p class="try">${L(T.tryIt)} <button onClick=${toggle}>Ctrl+Shift+Space</button> ${L(T.onKb)}</p>
         </div>
       </header>
     </div>
@@ -401,16 +603,40 @@ function App() {
     <section class="block" id="features">
       <div class="wrap">
         <div class="sec-head">
-          <h2>פחות חיפוש בתפריט התחל. יותר עבודה.</h2>
-          <p>כל מה שאתם פותחים כל יום, במקום אחד, מסודר כמו שאתם רוצים.</p>
+          <h2>${L(T.fHead)}</h2>
+          <p>${L(T.fSub)}</p>
         </div>
         <div class="features">
           ${FEATURES.map(([c, d, t, p]) => html`
-            <div class="feat" key=${t}>
+            <div class="feat" key=${t[0]}>
               <span class="sw" style=${{ background: c }}><svg viewBox="0 0 24 24"><path d=${d} /></svg></span>
-              <h3>${t}</h3>
-              <p>${p}</p>
+              <h3>${L(t)}</h3>
+              <p>${L(p)}</p>
             </div>`)}
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="themes">
+      <div class="wrap">
+        <div class="sec-head">
+          <span class="new">${L(T.mkNew)}</span>
+          <h2>${L(T.mkHead)}</h2>
+          <p>${L(T.mkSub)}</p>
+        </div>
+        <div class="make">
+          <div class="flow">
+            <ol>
+              <li><span class="n">1</span><div><h3>${L(T.m1h)}</h3><p>${L(T.m1p)}</p></div></li>
+              <li><span class="n">2</span><div><h3>${L(T.m2h)}</h3><p>${L(T.m2p)}</p></div></li>
+              <li><span class="n">3</span><div><h3>${L(T.m3h)}</h3><p>${L(T.m3p)}</p></div></li>
+            </ol>
+            <div><a class="btn btn-ghost" href=${GUIDE_URL} target="_blank" rel="noopener">${L(T.guide)}</a></div>
+          </div>
+          <div>
+            <div class="code" role="region" aria-label="lava.qdtheme">${codeNodes()}</div>
+            <p class="code-cap">lava.qdtheme · ${L(T.codeCap)}</p>
+          </div>
         </div>
       </div>
     </section>
@@ -418,14 +644,14 @@ function App() {
     <section class="block">
       <div class="wrap">
         <div class="sec-head">
-          <h2>מוכן תוך דקה</h2>
-          <p>שלושה צעדים, ואין צורך בהגדרות מסובכות.</p>
+          <h2>${L(T.sHead)}</h2>
+          <p>${L(T.sSub)}</p>
         </div>
         <div class="steps">
-          <div class="step"><span class="n">01</span><h3>מתקינים</h3><p>מורידים את המתקין ומריצים. ההתקנה למשתמש שלכם בלבד ולא דורשת הרשאות מנהל.</p></div>
-          <div class="step"><span class="n">02</span><h3>פותחים בצירוף מקשים</h3><p>מכל מקום, מכל תוכנה. QuickDeck רץ ברקע ליד השעון ותופס כמעט אפס משאבים.</p>
+          <div class="step"><span class="n">01</span><h3>${L(T.s1h)}</h3><p>${L(T.s1p)}</p></div>
+          <div class="step"><span class="n">02</span><h3>${L(T.s2h)}</h3><p>${L(T.s2p)}</p>
             <div class="keys"><span class="key">Ctrl</span><span class="key">Shift</span><span class="key">Space</span></div></div>
-          <div class="step"><span class="n">03</span><h3>בונים את הלוח</h3><p>מצב עריכה, לחיצה על ריבוע ריק, ובוחרים מהרעיונות המוכנים או גוררים קובץ מהסייר.</p></div>
+          <div class="step"><span class="n">03</span><h3>${L(T.s3h)}</h3><p>${L(T.s3p)}</p></div>
         </div>
       </div>
     </section>
@@ -433,15 +659,15 @@ function App() {
     <section class="block" id="ideas">
       <div class="wrap">
         <div class="sec-head">
-          <h2>56 כפתורים מוכנים, בלחיצה</h2>
-          <p>לא צריך לדעת פקודות של ווינדוס. בוחרים רעיון, והכפתור ממלא את עצמו.</p>
+          <h2>${L(T.iHead)}</h2>
+          <p>${L(T.iSub)}</p>
         </div>
         <div class="ideas-wrap">
           <div class="cat-list" role="tablist">
-            ${IDEAS.map((c, i) => html`<button key=${c.cat} role="tab" aria-selected=${i === cat} class=${'cat' + (i === cat ? ' on' : '')} onClick=${() => setCat(i)}>${c.cat}<span class="c">${c.items.length}</span></button>`)}
+            ${IDEAS.map((c, i) => html`<button key=${c.cat[0]} role="tab" aria-selected=${i === cat} class=${'cat' + (i === cat ? ' on' : '')} onClick=${() => setCat(i)}>${L(c.cat)}<span class="c">${c.items.length}</span></button>`)}
           </div>
           <div class="chips">
-            ${IDEAS[cat].items.map(([n, g, c]) => html`<span class="chip" key=${n}><i style=${{ background: c }}>${g}</i>${n}</span>`)}
+            ${IDEAS[cat].items.map(([n, g, c], i) => html`<span class="chip" key=${i}><i style=${{ background: c }}>${g}</i>${L(n)}</span>`)}
           </div>
         </div>
       </div>
@@ -449,39 +675,27 @@ function App() {
 
     <section class="block" id="faq">
       <div class="wrap">
-        <div class="sec-head"><h2>שאלות נפוצות</h2></div>
+        <div class="sec-head"><h2>${L(T.faqHead)}</h2></div>
         <div class="faq">
-          <details><summary>ווינדוס מציג אזהרה כחולה בהתקנה. זה בטוח?</summary>
-            <p>האזהרה (SmartScreen) מופיעה לכל תוכנה חדשה שעוד אין לה חתימה דיגיטלית. לוחצים "מידע נוסף" ואז "הפעל בכל זאת". QuickDeck לא אוסף מידע ולא שולח שום דבר לאינטרנט.</p></details>
-          <details><summary>הצירוף Ctrl+Shift+Space תפוס אצלי. אפשר לשנות?</summary>
-            <p>כן. בהגדרות לוחצים על שדה הקיצור ומקישים כל צירוף שתרצו. אם הצירוף תפוס על ידי תוכנה אחרת, QuickDeck מודיע על זה ועובר לחלופה.</p></details>
-          <details><summary>הכפתורים שלי נשמרים אם אעדכן גרסה?</summary>
-            <p>כן. הכפתורים, הדפים וההגדרות נשמרים בפרופיל המשתמש שלכם ונשארים גם אחרי עדכון או התקנה מחדש.</p></details>
-          <details><summary>אפשר להריץ פקודות כמו כיבוי או שינה?</summary>
-            <p>כן. יש כפתורים מוכנים לכיבוי, הפעלה מחדש, שינה, נעילה, כיבוי מסך וטיימר כיבוי. שימו לב שכפתורי כיבוי פועלים מיד, בלי לשאול.</p></details>
-          <details><summary>איך מסירים את התוכנה?</summary>
-            <p>הגדרות ← אפליקציות ← QuickDeck ← הסרה, כמו כל תוכנה אחרת.</p></details>
+          ${FAQ.map(([q, a], i) => html`<details key=${i}><summary>${L(q)}</summary><p>${L(a)}</p></details>`)}
         </div>
       </div>
     </section>
 
     <section class="final" id="download">
-      <div class="wrap" style=${{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '18px' }}>
-        <h2>הלחיצה הבאה שלכם תהיה מהירה יותר.</h2>
-        <p>מורידים, מתקינים, ולוחצים Ctrl+Shift+Space.</p>
-        ${DOWNLOAD_URL
-          ? html`<a class="btn btn-primary" href=${DOWNLOAD_URL} target="_blank" rel="noopener">הורדת QuickDeck</a>`
-          : html`<span class="btn btn-primary" aria-disabled="true" style=${{ opacity: .6, cursor: 'default' }}>ההורדה תיפתח בקרוב</span>`}
-        <div class="specs"><span>גרסה 1.0.0</span><span>Windows 10 / 11 · 64 ביט</span><span>116MB</span><span>עברית מלאה</span></div>
+      <div class="wrap">
+        <h2>${L(T.finalH)}</h2>
+        <p>${L(T.finalP)}</p>
+        <a class="btn btn-primary" href=${DOWNLOAD_URL}>${L(T.dlBig)}</a>
+        <div class="specs"><span>${L(T.version)} ${VERSION}</span><span>${L(T.bits)}</span><span>116MB</span><span>${L(T.langs)}</span></div>
       </div>
     </section>
 
-    <footer><div class="wrap"><span>QuickDeck © 2026</span><a href=${REPO_URL} target="_blank" rel="noopener">הקוד ב-GitHub</a></div></footer>
+    <footer><div class="wrap"><span>QuickDeck © 2026</span><a href=${REPO_URL} target="_blank" rel="noopener">${L(T.code)}</a></div></footer>
   `;
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(html`<${App} />`);
 </script>
-
 </body>
 </html>
