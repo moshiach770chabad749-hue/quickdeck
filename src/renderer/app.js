@@ -103,6 +103,22 @@ function ringOf(item) {
   if (!k.ring || k.ring === 'none') return { mode: 'none' };
   return k.ring === 'rainbow' ? { mode: 'rainbow', glow: !!k.ringGlow } : { mode: 'color', color: k.ring, glow: !!k.ringGlow };
 }
+// A color the user picked for this key wins over the theme: colorMode theme/wallpaper and any theme CSS,
+// even "!important" rules, because an inline !important style beats every stylesheet.
+function paintKey(el, item) {
+  const s = el.querySelector('.screen'); if (!s) return;
+  const c = String(item.color || '');
+  if (!item.colorSet || !/^#[0-9a-f]{3,8}$/i.test(c)) { s.style.removeProperty('background'); return; }
+  if (item.media && item.media.mode !== 'icon') { s.style.removeProperty('background'); return; } // media covers it anyway
+  const st = (theme && theme.keys && theme.keys.style) || 'lcd';
+  let bg;
+  if (item.fx === 'flow') bg = `linear-gradient(120deg, ${c}, color-mix(in srgb, ${c} 45%, #fff), color-mix(in srgb, ${c} 55%, #000), ${c}) 0 0 / 300% 300%`;
+  else if (st === 'glass') bg = `linear-gradient(160deg, color-mix(in srgb, ${c} 62%, rgba(255,255,255,.15)), color-mix(in srgb, ${c} 48%, rgba(0,0,0,.3)))`;
+  else if (st === 'neon') bg = `radial-gradient(circle at 50% 35%, color-mix(in srgb, ${c} 35%, #06040e), #06040e 80%)`;
+  else if (st === 'flat') bg = c;
+  else bg = `linear-gradient(160deg, color-mix(in srgb, ${c} 95%, white 10%), color-mix(in srgb, ${c} 70%, black 45%))`;
+  s.style.setProperty('background', bg, 'important');
+}
 function applyRing(el, item) {
   const r = ringOf(item);
   if (r.mode === 'color') el.style.setProperty('--ring', r.color || '#ffffff'); else el.style.removeProperty('--ring');
@@ -157,6 +173,13 @@ function applyTheme() {
     bg.style.background = val;
     wall = /(gradient\(|url\()/i.test(val) ? val.replace(/,?\s*#[0-9a-f]{3,8}\s*$/i, '') : `linear-gradient(${val}, ${val})`;
   }
+  // your own background must win over a theme's CSS (e.g. "#bg { background: ... !important }")
+  if (cfg.customBg && wall !== 'none') {
+    bg.style.setProperty('background-image', wall, 'important');
+    bg.style.setProperty('background-size', 'cover', 'important');
+    bg.style.setProperty('background-position', 'center', 'important');
+  }
+  if (cfg.customBg) { bg.style.setProperty('opacity', '1', 'important'); bg.style.setProperty('display', 'block', 'important'); }
   if (b.fit === 'contain') bg.style.backgroundSize = 'contain';
   else if (b.fit === 'repeat') { bg.style.backgroundSize = 'auto'; bg.style.backgroundRepeat = 'repeat'; }
   else if (kind === 'image' || kind === 'svg') bg.style.backgroundSize = 'cover';
@@ -232,9 +255,24 @@ function renameTab(b, p) {
 // ---------- deck ----------
 const isMediaFile = (p) => /\.(gif|png|jpe?g|webp|apng|avif|svg|mp4|webm)$/i.test(p || '');
 
+// biggest square key that fits the space for this many columns and rows
+function fitKeys() {
+  const box = deckEl.parentElement.getBoundingClientRect();
+  const cs = getComputedStyle(deckEl);
+  const gap = parseFloat(cs.columnGap) || 12;
+  const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
+  const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+  const kw = (box.width - padX - gap * (cfg.cols - 1)) / cfg.cols;
+  const kh = (box.height - padY - gap * (cfg.rows - 1)) / cfg.rows;
+  const k = Math.max(24, Math.floor(Math.min(kw, kh)));
+  deckEl.style.setProperty('--k', k + 'px');
+}
+window.addEventListener('resize', () => { if (cfg && !deckEl.classList.contains('hidden')) { fitKeys(); layoutWall(); } });
+
 async function renderDeck() {
   deckEl.style.setProperty('--cols', cfg.cols);
   deckEl.style.setProperty('--rows', cfg.rows);
+  fitKeys();
   deckEl.innerHTML = '';
   const tiles = curTiles().slice(0, slots());
   tiles.forEach((tile, i) => {
@@ -246,6 +284,7 @@ async function renderDeck() {
       el.style.setProperty('--c', tile.color || '#3b3b52');
       applyRing(el, tile);
       el.innerHTML = keyInner(tile);
+      paintKey(el, tile);
       el.title = tile.target;
       iconHtml(tile).then(h => { const ico = el.querySelector('.ico'); if (ico) ico.innerHTML = h; });
     } else el.innerHTML = '<div class="screen"></div>';
@@ -479,7 +518,7 @@ function openEditor(i, draft, draftPage) {
   $('#fLabel').value = ed.label; $('#fTarget').value = ed.target; $('#fIcon').value = ed.icon || '';
   $('#fHideLabel').checked = !!ed.hideLabel;
   renderSeg(); renderPageSeg(); renderMediaSeg(); renderFxSeg(); renderRing();
-  renderSwatches($('#swatches'), ed.color, (c) => { ed.color = c; updatePreview(); });
+  renderSwatches($('#swatches'), ed.color, (c) => { ed.color = c; ed.colorSet = true; updatePreview(); });
   updatePreview();
   window.qd.pin(true);
   $('#tileModal').classList.remove('hidden');
@@ -573,6 +612,7 @@ $('#gGo').onclick = () => {
   $('#gifModal').classList.add('hidden');
   window.qd.openUrl('https://chatgpt.com/');
 };
+$('#fColorTheme').onclick = () => { ed.colorSet = false; updatePreview(); };
 $('#fHideLabel').onchange = () => { ed.hideLabel = $('#fHideLabel').checked; updatePreview(); };
 function renderSwatches(box, current, onPick) { renderSwatchList(box, COLORS, current, onPick); }
 function renderSwatchList(box, list, current, onPick) {
@@ -613,6 +653,9 @@ async function updatePreview() {
   pv.style.setProperty('--c', ed.color);
   applyRing(pv, ed);
   pv.innerHTML = keyInner(ed);
+  paintKey(pv, ed);
+  [...$('#swatches').children].forEach(x => x.classList.toggle('dim', !ed.colorSet));
+  $('#fColorTheme').classList.toggle('on', !ed.colorSet);
   pv.querySelector('.ico').innerHTML = await iconHtml(ed);
 }
 $('#tileSave').onclick = () => {
@@ -651,9 +694,9 @@ function renderIdeas() {
 }
 function useIdea(it) {
   const label = tr(it.label).replace(/\s*(to|of|ל|של)?\s*\.\.\.$/i, '').trim();
-  Object.assign(ed, { label, icon: it.icon, color: it.color, type: it.type, target: it.target, noIcon: false });
+  Object.assign(ed, { label, icon: it.icon, color: it.color, colorSet: true, type: it.type, target: it.target, noIcon: false });
   $('#fLabel').value = ed.label; $('#fTarget').value = ed.target; $('#fIcon').value = ed.icon;
-  renderSeg(); renderSwatches($('#swatches'), ed.color, (c) => { ed.color = c; updatePreview(); }); updatePreview();
+  renderSeg(); renderSwatches($('#swatches'), ed.color, (c) => { ed.color = c; ed.colorSet = true; updatePreview(); }); updatePreview();
   $('#ideasModal').classList.add('hidden');
   if (it.ask) {
     // select the placeholder so the user just types the real number / email
